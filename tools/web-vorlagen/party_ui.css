@@ -1,0 +1,19 @@
+/* PARTY-UI-CSS-START (gleich in ninja/flappy/auto) */
+#hilfe{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:10px;
+  background:rgba(0,0,0,.66);color:#fff;font:600 15px system-ui,sans-serif;padding:6px 6px 6px 16px;border-radius:999px;
+  max-width:calc(100vw - 32px);box-sizing:border-box;white-space:nowrap;overflow:hidden}
+#hilfe span{overflow:hidden;text-overflow:ellipsis}
+#hilfe button{flex:none;border:0;border-radius:50%;width:30px;height:30px;background:rgba(255,255,255,.22);color:#fff;
+  font:700 18px system-ui,sans-serif;cursor:pointer;padding:0}
+#hilfe.zu{padding:6px;left:auto;right:12px;transform:none}
+#hilfe.zu span{display:none}
+#touch{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;
+  padding:16px;z-index:3;pointer-events:none;box-sizing:border-box}
+#touch div{display:flex;gap:16px}
+#touch button{pointer-events:auto;width:clamp(92px,25vmin,140px);height:clamp(92px,25vmin,140px);border-radius:50%;
+  border:3px solid rgba(255,255,255,.55);font:800 40px system-ui,sans-serif;background:rgba(255,255,255,.2);color:#fff;
+  touch-action:none;-webkit-tap-highlight-color:transparent;padding:0}
+#touch button.on{background:rgba(255,255,255,.6);color:#000}
+#touch button small{display:block;font-size:15px;font-weight:800;letter-spacing:1px}
+body.touch #hilfe{bottom:calc(clamp(92px,25vmin,140px) + 30px);font-size:13px}
+/* PARTY-UI-CSS-ENDE */

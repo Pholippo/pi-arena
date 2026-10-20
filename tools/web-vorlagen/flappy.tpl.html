@@ -1,0 +1,181 @@
+<!doctype html><html lang=de><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=no">
+<title>FLAPPY-PARTY</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1a2b;font-family:system-ui,Segoe UI,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;color:#fff}
+canvas{display:block;width:100vw;height:100vh}
+#form{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b1a2bee;z-index:5}
+#form div{text-align:center}
+#form h1{font-size:44px;margin:0 0 6px;color:#ffd23f;text-shadow:0 4px 0 #b8860b}
+#form input{font-size:26px;padding:10px 14px;border-radius:12px;border:0;text-align:center;width:240px}
+#form button,#tvbtn{font-size:24px;padding:12px 26px;border:0;border-radius:14px;background:#2ea043;color:#fff;
+  font-weight:700;margin-top:14px;cursor:pointer}
+#tvbtn{position:fixed;right:18px;bottom:18px;z-index:4;display:none}
+@@CSS@@
+</style></head><body>
+<canvas id=c></canvas>
+<div id=form><div><h1>FLAPPY-PARTY</h1><p>Wie heisst du?</p>
+<input id=name maxlength=14 autocomplete=off><br><button id=los>Mitfliegen!</button>
+<p style="opacity:.7">Leertaste / Klick / Tippen = flattern</p></div></div>
+<div id=touch><div></div><div><button data-k=f>▲<small>FLATTERN</small></button></div></div>
+<button id=tvbtn>START</button>
+<script>
+window.onerror=(m)=>{window.__err=String(m);};
+// ---------- Welt (muss bei allen gleich sein -> Roehren aus dem Seed)
+const WH=600, BX=160, R=14, G=1500, FLAP=-470, SPEED=190, ABST=270, PW=72, LUECKE=175, ERSTE=650;
+function zufall(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let seed=1, roehrenCache={};
+function roehre(i){ // Mitte der Luecke von Roehre i
+  const k=seed+':'+i; if(roehrenCache[k]!==undefined) return roehrenCache[k];
+  const r=zufall(seed*1000003+i*7919)(); const luecke=Math.max(135,LUECKE-i*0.6);
+  return roehrenCache[k]={y:80+luecke/2+r*(WH-40-160-luecke), h:luecke}; // Luecke immer 80px von oben/Boden weg
+}
+@@UI@@
+// ---------- Zustand
+const TV=location.pathname.startsWith('/tv');
+const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // aus MEGA-PARTY: kein Tippen
+let autoLaeuft=false;
+const cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false});
+let W=800, skala=1, bgC=null;
+function groesse(){ // nur bei echter Groessenaenderung; Himmel-Verlauf + Boden einmal ins Offscreen-Canvas
+  if(!canvasGroesse(cv)&&bgC) return; skala=cv.height/WH; W=cv.width/skala; for(const k in tbCache) delete tbCache[k];
+  bgC=document.createElement('canvas'); bgC.width=cv.width; bgC.height=cv.height; const b=bgC.getContext('2d',{alpha:false});
+  b.setTransform(skala,0,0,skala,0,0); const g=b.createLinearGradient(0,0,0,WH); g.addColorStop(0,'#4ec0ff'); g.addColorStop(1,'#bdeaff');
+  b.fillStyle=g; b.fillRect(0,0,W+1,WH); b.fillStyle='#ded895'; b.fillRect(0,WH-40,W+1,40); b.fillStyle='#73bf2e'; b.fillRect(0,WH-40,W+1,8); }
+addEventListener('resize',groesse);groesse();
+let id=localStorage.getItem('flappy_id')||'', meinName=localStorage.getItem('flappy_name')||'';
+let st={phase:'lobby',rest:0,spieler:[],runde_s:180}, stZeit=performance.now();
+let vogel={x:0,y:WH/2,v:0,lebt:true,tot:0}, phaseAlt='', anzeige={}; // anzeige: interpolierte Geister
+function neu(){vogel={x:0,y:WH/2,v:0,lebt:true,tot:0};}
+// ---------- Sound (kleine Beeps)
+let ac=null;function ton(f,d=0.07,typ='square',vol=0.05){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();
+  o.type=typ;o.frequency.value=f;g.gain.value=vol;o.connect(g);g.connect(ac.destination);o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+d);o.stop(ac.currentTime+d+0.02)}catch(e){}}
+// ---------- Eingabe
+function flap(){ if(TV) return; if(!vogel.lebt) return; vogel.v=FLAP; ton(660,0.06); }
+addEventListener('keydown',e=>{ if(document.activeElement===document.getElementById('name')) return;
+  if([' ','ArrowUp','w','W','Enter'].includes(e.key)){e.preventDefault();flap();} });
+cv.addEventListener('pointerdown',e=>{e.preventDefault();flap();});
+touchKnoepfe((k,an)=>{ if(an) flap(); });
+hilfe(TOUCH?'Tippen oder ▲ = flattern · durch die Lücken fliegen':'Leertaste / ▲ / W / Klick = flattern · durch die Lücken fliegen · H = Hilfe aus');
+// ---------- Anmeldung
+const form=document.getElementById('form'), nameEl=document.getElementById('name');
+nameEl.value=meinName;
+async function post(pfad,daten){const b=new URLSearchParams(daten).toString();
+  const r=await fetch(pfad,{method:'POST',body:b,headers:{'Content-Type':'application/x-www-form-urlencoded'}});return r.json();}
+async function anmelden(){meinName=(nameEl.value||'').trim()||'Vogel';localStorage.setItem('flappy_name',meinName);
+  try{const r=await post('/join',{name:meinName,id});id=r.id;localStorage.setItem('flappy_id',id);form.style.display='none';nameEl.blur();ton(880,.12,'triangle',.08);}
+  catch(e){alert('Keine Verbindung zum Host');}}
+document.getElementById('los').onclick=anmelden;
+if(QNAME&&!TV){nameEl.value=QNAME;form.style.display='none';autoLaeuft=true;anmelden().finally(()=>autoLaeuft=false);}
+nameEl.addEventListener('keydown',e=>{if(e.key==='Enter')anmelden();});
+if(TV){form.style.display='none';const b=document.getElementById('tvbtn');b.style.display='block';
+  b.onclick=()=>post(st.phase==='spiel'||st.phase==='countdown'?'/lobby':'/start',{});}
+else if(id&&meinName){anmelden();}
+// ---------- Netzwerk: 10x pro Sekunde eigene Position hoch, alle anderen runter
+async function netz(){
+  try{
+    let r;
+    if(TV||!id){r=await (await fetch('/state')).json();}
+    else{r=await post('/upd',{id,x:vogel.x.toFixed(1),y:vogel.y.toFixed(1),lebt:vogel.lebt?'1':'0'});
+      if(!r.ich){id='';localStorage.removeItem('flappy_id');if(QNAME&&!TV){if(!autoLaeuft){autoLaeuft=true;anmelden().finally(()=>autoLaeuft=false);}}else form.style.display='flex';}}
+    if(r.spiel && r.spiel!=='flappy'){location.reload();return;} // Host hat das Spiel gewechselt
+    if(r.seed!==seed){seed=r.seed;roehrenCache={};}
+    st=r;stZeit=performance.now();
+    if(st.phase!==phaseAlt){ if(st.phase==='countdown'){neu();}
+      if(st.phase==='spiel'){neu();ton(880,.3,'triangle',.1)} if(st.phase==='ende'){ton(523,.2);setTimeout(()=>ton(659,.2),180);setTimeout(()=>ton(784,.4),360)}
+      phaseAlt=st.phase;}
+  }catch(e){}
+  setTimeout(netz,100);
+}
+netz();
+// ---------- Physik (feste 120 Hz -> auf jedem Geraet gleich)
+function kollision(b){
+  if(b.y-R<0||b.y+R>WH-40) return true;
+  const sx=b.x+BX; // Weltposition des Vogels
+  const i0=Math.floor((sx-ERSTE-PW)/ABST), i1=i0+1;
+  for(const i of [i0,i1]){ if(i<0) continue; const px=ERSTE+i*ABST; if(sx+R>px&&sx-R<px+PW){
+    const ro=roehre(i); if(b.y-R<ro.y-ro.h/2||b.y+R>ro.y+ro.h/2) return true; } }
+  return false;
+}
+function schritt(dt){
+  const fliegt=TV?false:(st.phase==='spiel'||st.phase==='lobby');
+  if(!fliegt){ vogel.y=WH/2+Math.sin(performance.now()/300)*12; return; }
+  if(!vogel.lebt){ vogel.tot+=dt; vogel.v+=G*dt; vogel.y=Math.min(WH-40-R,vogel.y+vogel.v*dt);
+    if(vogel.tot>1.0) neu(); return; }
+  vogel.v=Math.min(900,vogel.v+G*dt); vogel.y+=vogel.v*dt; vogel.x+=SPEED*dt;
+  const vorher=Math.floor((vogel.x-SPEED*dt+BX-ERSTE-PW)/ABST), jetzt=Math.floor((vogel.x+BX-ERSTE-PW)/ABST);
+  if(jetzt>vorher&&jetzt>=0) ton(1046,.05,'square',.03);
+  if(kollision(vogel)){ vogel.lebt=false; vogel.tot=0; vogel.v=-200; ton(160,.3,'sawtooth',.07); }
+}
+// ---------- Zeichnen
+function vogelMalen(x,y,v,farbe,alpha,eigen){ // eigen: groesser + weisse Umrandung
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(Math.max(-0.5,Math.min(1.2,v/700)));
+  const s=eigen?1.25:1;ctx.scale(s,s);
+  ctx.fillStyle=farbe;ctx.beginPath();ctx.ellipse(0,0,R+3,R,0,0,7);ctx.fill();
+  if(eigen){ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#000';ctx.beginPath();ctx.ellipse(0,0,R+5,R+2,0,0,7);ctx.stroke();}
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(7,-5,5,0,7);ctx.fill();
+  ctx.fillStyle='#000';ctx.beginPath();ctx.arc(8.5,-5,2.3,0,7);ctx.fill();
+  ctx.fillStyle='#ff8c1a';ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(23,3);ctx.lineTo(13,7);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(-5,3,8,5,0.3,0,7);ctx.fill();
+  ctx.restore();
+}
+function zeichne(){
+  // Kamera: eigener Vogel, am TV der Fuehrende
+  let kamX=vogel.x;
+  if(TV){let m=0;for(const p of st.spieler){const a=anzeige[p.id];if(a&&p.lebt)m=Math.max(m,a.x)};kamX=m;}
+  // Himmel + Boden aus dem Cache
+  ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.drawImage(bgC,0,0);
+  ctx.setTransform(skala,0,0,skala,0,0);
+  ctx.fillStyle='#ffffffaa';ctx.beginPath();for(let i=0;i<(LEICHT?4:8);i++){const wx=((i*230-kamX*0.3)%(W+300)+W+300)%(W+300)-150;
+    ctx.moveTo(wx+60,70+(i%3)*45);ctx.ellipse(wx,70+(i%3)*45,60,18,0,0,7);}ctx.fill();
+  // Roehren
+  const iA=Math.max(0,Math.floor((kamX-ERSTE-PW)/ABST)), iB=Math.floor((kamX+W-ERSTE)/ABST)+1;
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  for(let i=iA;i<=iB;i++){const px=ERSTE+i*ABST-kamX; const ro=roehre(i);
+    const oben=ro.y-ro.h/2, unten=ro.y+ro.h/2;
+    ctx.fillStyle='#5cb85c';ctx.fillRect(px,0,PW,oben);ctx.fillRect(px,unten,PW,WH-40-unten);
+    ctx.fillStyle='#3e8e41';ctx.fillRect(px-5,oben-24,PW+10,24);ctx.fillRect(px-5,unten,PW+10,24);
+    ctx.fillStyle='#ffffff33';ctx.fillRect(px+8,0,8,oben-24);ctx.fillRect(px+8,unten+24,8,WH-64-unten);
+    if(i%5===4){ctx.fillStyle='#0008';ctx.font='bold 14px system-ui';
+      ctx.fillText(Math.round((ERSTE+i*ABST)/10)+' m',px+PW/2,WH-48);}
+  }
+  // Geister (andere Spieler): halbtransparent, Namensschild in Spielerfarbe
+  const schilder=[];
+  schilderNeu();
+  for(const p of st.spieler){ if(p.id===id||(!p.x&&!p.y)) continue;
+    const a=anzeige[p.id]||(anzeige[p.id]={x:p.x,y:p.y});
+    a.x+= (p.x-a.x)*0.25; a.y+=(p.y-a.y)*0.25;
+    const sx=a.x-kamX+BX; if(sx<-40||sx>W+40) continue;
+    vogelMalen(sx,a.y,0,p.farbe,TV?(p.lebt?1:0.35):(p.lebt?0.5:0.2),false); schilder.push([p,sx,a.y-R]);
+  }
+  for(const [p,x,y] of schilder) beschriftung(p,x,y,false);
+  // eigener Vogel (zuletzt = obenauf)
+  if(!TV&&id){const me=ich_p();vogelMalen(BX,vogel.y,vogel.v,me.farbe,vogel.lebt?1:0.6,true);beschriftung(me,BX,vogel.y-R*1.3,true);}
+  hud();
+}
+function zeit(s){s=Math.ceil(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+const fWert=p=>p.best+' m';
+function hud(){
+  const rest=Math.max(0,st.rest-(performance.now()-stZeit)/1000); countdownTon(rest);
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=5;
+  const gross=t=>{ctx.font='bold 44px system-ui';ctx.strokeText(t,W/2,60);ctx.fillText(t,W/2,60);};
+  if(st.phase==='lobby'){gross(TV?'FLAPPY-PARTY':'Uebe schon mal!');
+    ctx.font='bold 20px system-ui';const t=TV?(st.spieler.length+' Voegel bereit - '+location.host):'Warte auf den Start...';
+    ctx.strokeText(t,W/2,92);ctx.fillText(t,W/2,92);}
+  else if(st.phase==='countdown'){ctx.font='bold 130px system-ui';const t=String(Math.ceil(rest)||'LOS');
+    ctx.strokeText(t,W/2,WH/2);ctx.fillText(t,W/2,WH/2);}
+  else if(st.phase==='spiel'){gross(zeit(rest));
+    if(!TV){ctx.font='bold 22px system-ui';const t=Math.floor(vogel.x/10)+' m';ctx.strokeText(t,W/2,92);ctx.fillText(t,W/2,92);
+      if(!vogel.lebt){ctx.font='bold 34px system-ui';ctx.strokeText('AUTSCH! nochmal...',W/2,WH/2);ctx.fillText('AUTSCH! nochmal...',W/2,WH/2);}}}
+  rangliste(W-(TV?320:240),12,TV?305:225,'BESTE WEITE','#ffd23f',TV?12:6,fWert);
+  if(st.phase==='ende') endeScreen('ZEIT VORBEI!',WH,fWert);
+  if(TV){document.getElementById('tvbtn').textContent=(st.phase==='spiel'||st.phase==='countdown')?'ABBRECHEN':'START';}
+}
+// ---------- Schleife
+let alt=performance.now(), rest=0;
+function lauf(t){frameMessen(t-alt);rest+=Math.min(0.1,(t-alt)/1000);alt=t;while(rest>=1/120){schritt(1/120);rest-=1/120;}zeichne();requestAnimationFrame(lauf);}
+requestAnimationFrame(lauf);
+</script></body></html>

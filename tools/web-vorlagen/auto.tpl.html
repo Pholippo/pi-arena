@@ -1,0 +1,258 @@
+<!doctype html><html lang=de><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AUTO-PARTY</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1a2b;font-family:system-ui,Segoe UI,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;color:#fff}
+canvas{display:block;width:100vw;height:100vh}
+#form{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b1a2bee;z-index:5}
+#form div{text-align:center}
+#form h1{font-size:44px;margin:0 0 6px;color:#ffd23f;text-shadow:0 4px 0 #b8860b}
+#form input{font-size:26px;padding:10px 14px;border-radius:12px;border:0;text-align:center;width:240px}
+#form button,#tvbtn{font-size:24px;padding:12px 26px;border:0;border-radius:14px;background:#2ea043;color:#fff;
+  font-weight:700;margin-top:14px;cursor:pointer}
+#tvbtn{position:fixed;right:18px;bottom:18px;z-index:4;display:none}
+@@CSS@@
+</style></head><body>
+<canvas id=c></canvas>
+<div id=form><div><h1>AUTO-PARTY</h1><p>Wie heisst du?</p>
+<input id=name maxlength=14 autocomplete=off><br><button id=los>Einsteigen!</button>
+<p style="opacity:.7">&#9664; &#9654; / A D / links-rechts tippen = Spur wechseln<br>&#9650; / W = Turbo</p></div></div>
+<div id=touch><div><button data-k=l>&#9664;</button><button data-k=r>&#9654;</button></div><div><button data-k=t>&#9650;<small>TURBO</small></button></div></div>
+<button id=tvbtn>START</button>
+<script>
+window.onerror=(m)=>{window.__err=String(m);};
+// ---------- Welt (muss bei allen gleich sein -> Verkehr aus dem Seed)
+const COLS=4, SPUR=100, STRASSE=COLS*SPUR, ALEN=86, ABR=48;
+const V0=280, VMAX=620, BESCHL=7, TURBO=140, SPURTEMPO=9, SCHUTZ=1.5;
+const V0_PLUS=120, VMAX_PLUS=120; // im Lauf der Runde: Start- und Hoechsttempo steigen bis Rundenende um diese Werte
+// VERKEHR-START
+const ABST=260, U=150; // Abstand der Verkehrs-Reihen (px Strecke) und feste Eigengeschwindigkeit aller Gegner
+// Erlaubte Belegungen einer Reihe: nie mehr als 2 Autos und nie zwei nebeneinander am Rand ({0,1},{2,3}),
+// damit man von JEDER freien Spur mit hoechstens 1 Spurwechsel an der naechsten Reihe vorbeikommt.
+const MUSTER1=[[0],[1],[2],[3]], MUSTER2=[[0,2],[0,3],[1,2],[1,3]];
+// Schwierigkeit waechst mit der Rundenzeit: stufe 0..STUFEN-1 (setzt die Spielschleife, wenn eine Reihe zum ersten Mal
+// gebraucht wird). Je Stufe [Anteil leere Reihen, Anteil leer+1 Auto]; der Rest hat 2 Autos. Weil jede Reihe nur erlaubte
+// Muster nutzt, gilt die Spurwechsel-Garantie fuer JEDE Kombination von Stufen benachbarter Reihen.
+const STUFEN=6, DICHTE=[[0.15,0.55],[0.10,0.45],[0.06,0.35],[0.03,0.26],[0.01,0.17],[0,0.10]], LKW=[0.15,0.18,0.21,0.24,0.27,0.30];
+let stufe=0;
+const AFARBEN=['#e63946','#f4a261','#2a9d8f','#e9c46a','#8338ec','#3a86ff','#ff006e','#fb8500','#adb5bd','#06d6a0'];
+function zufall(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let seed=1, reihenCache={};
+function reihe(i){ // Reihe i: Liste {spur,farbe,lkw}; Weltposition = i*ABST + U*T
+  const k=seed+':'+i; if(reihenCache[k]) return reihenCache[k];
+  const s=Math.max(0,Math.min(STUFEN-1,stufe|0)), d=DICHTE[s];
+  const r=zufall((seed*1000003+i*7919)>>>0); r();
+  const w=r(); let m=[];
+  if(w<d[0]) m=[]; else if(w<d[1]) m=MUSTER1[Math.floor(r()*4)]; else m=MUSTER2[Math.floor(r()*4)];
+  return reihenCache[k]=m.map(sp=>({spur:sp,farbe:AFARBEN[Math.floor(r()*AFARBEN.length)],lkw:r()<LKW[s]}));
+}
+function reihePos(i,T){return i*ABST+U*T;}
+// VERKEHR-ENDE
+@@UI@@
+// ---------- Zustand
+const TV=location.pathname.startsWith('/tv');
+const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // aus MEGA-PARTY: kein Tippen
+let autoLaeuft=false;
+const cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false});
+let W=800, H=600, skala=1, spriteCache={};
+function groesse(){ // nur bei echter Groessenaenderung; Auto-/Baum-Sprites danach neu (Offscreen-Canvas)
+  if(!canvasGroesse(cv)) return;
+  skala=Math.min(cv.height/600, cv.width/(STRASSE+90)); W=cv.width/skala; H=cv.height/skala; spriteCache={}; for(const k in tbCache) delete tbCache[k]; }
+addEventListener('resize',groesse);groesse();
+let id=localStorage.getItem('auto_id')||'', meinName=localStorage.getItem('auto_name')||'';
+let st={phase:'lobby',rest:0,spieler:[],runde_s:180}, stZeit=performance.now();
+let ich, phaseAlt='', anzeige={}, teile=[], T=0, turbo=false, blitz=0, stufeAlt=0, stufeZeit=-9;
+function neu(){ich={x:0,spur:1,ziel:1,lebt:true,tot:0,tl:0,v:V0};} neu(); // x = gefahrene Strecke
+function fortschritt(){return st.phase==='spiel'?Math.max(0,Math.min(1,T/(st.runde_s||180))):0;}
+// ---------- Sound (kleine Beeps)
+let ac=null;function ton(f,d=0.07,typ='square',vol=0.05){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();
+  o.type=typ;o.frequency.value=f;g.gain.value=vol;o.connect(g);g.connect(ac.destination);o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+d);o.stop(ac.currentTime+d+0.02)}catch(e){}}
+// ---------- Eingabe
+function lenk(d){ if(TV||!ich.lebt) return; const z=Math.max(0,Math.min(COLS-1,ich.ziel+d)); if(z!==ich.ziel){ich.ziel=z;ton(520+z*60,.04,'triangle',.04);} }
+addEventListener('keydown',e=>{ if(document.activeElement===document.getElementById('name')) return;
+  if(['ArrowLeft','a','A'].includes(e.key)){e.preventDefault();if(!e.repeat)lenk(-1);}
+  if(['ArrowRight','d','D'].includes(e.key)){e.preventDefault();if(!e.repeat)lenk(1);}
+  if(['ArrowUp','w','W'].includes(e.key)){e.preventDefault();turbo=true;} });
+addEventListener('keyup',e=>{ if(['ArrowUp','w','W'].includes(e.key)) turbo=false; });
+addEventListener('blur',()=>{turbo=false;});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();lenk(e.clientX<innerWidth/2?-1:1);});
+touchKnoepfe((k,an)=>{ if(k==='t') turbo=an; else if(an) lenk(k==='l'?-1:1); });
+hilfe(TOUCH?'◀ ▶ Spur wechseln · TURBO halten · Autos ausweichen':'◀ ▶ / A D Spur wechseln · ▲ / W Turbo · Autos ausweichen · H = Hilfe aus');
+// ---------- Anmeldung
+const form=document.getElementById('form'), nameEl=document.getElementById('name');
+nameEl.value=meinName;
+async function post(pfad,daten){const b=new URLSearchParams(daten).toString();
+  const r=await fetch(pfad,{method:'POST',body:b,headers:{'Content-Type':'application/x-www-form-urlencoded'}});return r.json();}
+async function anmelden(){meinName=(nameEl.value||'').trim()||'Flitzer';localStorage.setItem('auto_name',meinName);
+  try{const r=await post('/join',{name:meinName,id});id=r.id;localStorage.setItem('auto_id',id);form.style.display='none';nameEl.blur();ton(880,.12,'triangle',.08);}
+  catch(e){alert('Keine Verbindung zum Host');}}
+document.getElementById('los').onclick=anmelden;
+if(QNAME&&!TV){nameEl.value=QNAME;form.style.display='none';autoLaeuft=true;anmelden().finally(()=>autoLaeuft=false);}
+nameEl.addEventListener('keydown',e=>{if(e.key==='Enter')anmelden();});
+if(TV){form.style.display='none';const b=document.getElementById('tvbtn');b.style.display='block';
+  b.onclick=()=>post(st.phase==='spiel'||st.phase==='countdown'?'/lobby':'/start',{});}
+else if(id&&meinName){anmelden();}
+// ---------- Netzwerk: 10x pro Sekunde eigene Position hoch, alle anderen runter
+// x = gefahrene Strecke (px), y = Querposition auf der Strasse (px, 0..400)
+async function netz(){
+  try{
+    let r;
+    if(TV||!id){r=await (await fetch('/state')).json();}
+    else{r=await post('/upd',{id,x:ich.x.toFixed(1),y:(ich.spur*SPUR+SPUR/2).toFixed(1),lebt:ich.lebt?'1':'0',ziel:''});
+      if(!r.ich){id='';localStorage.removeItem('auto_id');if(QNAME&&!TV){if(!autoLaeuft){autoLaeuft=true;anmelden().finally(()=>autoLaeuft=false);}}else form.style.display='flex';}}
+    if(r.spiel && r.spiel!=='auto'){location.reload();return;} // Host hat das Spiel gewechselt
+    if(r.seed!==seed){seed=r.seed;reihenCache={};}
+    st=r;stZeit=performance.now();
+    if(st.phase!==phaseAlt){ if(st.phase==='countdown'){neu();}
+      if(st.phase==='spiel'){neu();T=serverT();stufeAlt=0;ton(880,.3,'triangle',.1)} if(st.phase==='ende'){ton(523,.2);setTimeout(()=>ton(659,.2),180);setTimeout(()=>ton(784,.4),360)}
+      phaseAlt=st.phase;}
+  }catch(e){}
+  setTimeout(netz,100);
+}
+function serverT(){return Math.max(0,(st.runde_s||180)-Math.max(0,st.rest-(performance.now()-stZeit)/1000));}
+netz();
+// ---------- Physik (feste 120 Hz -> auf jedem Geraet gleich)
+function kollision(){
+  const px=ich.spur*SPUR;
+  const i0=Math.floor((ich.x-U*T-ALEN)/ABST), i1=Math.ceil((ich.x-U*T+ALEN)/ABST);
+  for(let i=i0;i<=i1;i++){ const y=reihePos(i,T); if(Math.abs(y-ich.x)>ALEN-10) continue;
+    for(const a of reihe(i)){ if(Math.abs(a.spur*SPUR-px)<ABR-4) return true; } }
+  return false;
+}
+function boom(){ for(let k=0;k<40;k++){const w=Math.random()*7,s=60+Math.random()*260;
+  teile.push({x:ich.spur*SPUR+SPUR/2,s:ich.x,vx:Math.cos(w)*s,vy:Math.sin(w)*s,t:0.6+Math.random()*0.5,f:['#ffd23f','#ff7b00','#e63946','#fff'][k%4]});} blitz=0.25; }
+function schritt(dt){
+  for(const p of teile){p.x+=p.vx*dt;p.s-=p.vy*dt;p.vx*=0.96;p.vy*=0.96;p.t-=dt;} teile=teile.filter(p=>p.t>0);
+  blitz=Math.max(0,blitz-dt);
+  const faehrt=st.phase==='spiel'||st.phase==='lobby';
+  if(!faehrt) return;
+  T+=dt; if(st.phase==='spiel') T+=(serverT()-T)*0.05;
+  if(TV) return;
+  if(!ich.lebt){ ich.tot+=dt; if(ich.tot>1.0) neu(); return; }
+  const d=ich.ziel-ich.spur, m=SPURTEMPO*dt; ich.spur+=Math.abs(d)<=m?d:Math.sign(d)*m;
+  const f=fortschritt();
+  ich.tl+=dt; ich.v=Math.min(VMAX+VMAX_PLUS*f,V0+V0_PLUS*f+BESCHL*ich.tl)+(turbo?TURBO:0);
+  const vor=Math.floor((ich.x-U*T)/ABST); ich.x+=ich.v*dt; const nach=Math.floor((ich.x-U*T)/ABST);
+  if(nach>vor && reihe(nach).length) ton(1046,.04,'square',.025);
+  if(ich.tl>SCHUTZ && kollision()){ ich.lebt=false; ich.tot=0; boom(); ton(160,.35,'sawtooth',.08); setTimeout(()=>ton(90,.3,'sawtooth',.06),80); }
+}
+// ---------- Zeichnen (Autos und Baeume als fertige Sprites im Offscreen-Canvas, je Farbe einmal gemalt)
+function karosse(g,farbe,lkw){ // Auto mit Mitte (0,0), Front zeigt nach oben
+  const rr=(x,y,w,h,r)=>{g.beginPath();g.roundRect?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h);g.fill();};
+  const w=ABR, l=lkw?ALEN+14:ALEN;
+  g.fillStyle='#0005';rr(-w/2+4,-l/2+6,w,l,10);
+  g.fillStyle=farbe;rr(-w/2,-l/2,w,l,10);
+  g.fillStyle='#ffffff40';rr(-w/2+5,-l/2+4,8,l-8,4);
+  if(lkw){g.fillStyle='#ddd';rr(-w/2+3,-l/2+30,w-6,l-34,4);g.fillStyle='#1d2b3a';rr(-w/2+6,-l/2+8,w-12,14,4);}
+  else{g.fillStyle='#1d2b3a';rr(-w/2+6,-l/2+16,w-12,18,5);rr(-w/2+7,l/2-24,w-14,13,4);
+    g.fillStyle='#00000030';rr(-w/2+6,-l/2+36,w-12,l-62,4);}
+  g.fillStyle='#fff6a0';rr(-w/2+4,-l/2-1,11,6,3);rr(w/2-15,-l/2-1,11,6,3);
+  g.fillStyle='#ff2a2a';rr(-w/2+4,l/2-5,10,5,2);rr(w/2-14,l/2-5,10,5,2);
+}
+function baum(g,farbe){ g.fillStyle='#0003';g.beginPath();g.arc(5,5,17,0,7);g.fill();
+  g.fillStyle=farbe;g.beginPath();g.arc(0,0,17,0,7);g.fill(); g.fillStyle='#ffffff22';g.beginPath();g.arc(-5,-5,7,0,7);g.fill(); }
+function sprite(k,bw,bh,mal){ let c=spriteCache[k]; if(c) return c;
+  c=document.createElement('canvas'); c.width=Math.max(1,Math.ceil(bw*skala)); c.height=Math.max(1,Math.ceil(bh*skala));
+  const g=c.getContext('2d'); g.setTransform(c.width/bw,0,0,c.height/bh,0,0); g.translate(bw/2,bh/2); mal(g); c.bw=bw; c.bh=bh;
+  return spriteCache[k]=c; }
+function autoMalen(x,y,farbe,alpha,eigen,lkw){ // x,y = Mitte; eigen: groesser + weisse Umrandung
+  const c=sprite('a'+farbe+(lkw?'L':''),ABR+16,(lkw?ALEN+14:ALEN)+20,g=>karosse(g,farbe,lkw)), s=eigen?1.12:1;
+  ctx.globalAlpha=alpha;
+  if(eigen){ ctx.save(); ctx.translate(x,y); ctx.scale(s,s); pfad(-ABR/2-4,-ALEN/2-4,ABR+8,ALEN+8,14);
+    ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle='#000'; ctx.stroke(); ctx.restore(); }
+  ctx.drawImage(c,x-c.bw*s/2,y-c.bh*s/2,c.bw*s,c.bh*s); ctx.globalAlpha=1;
+}
+function hash(k){let t=Math.imul(k^0x9e3779b9,0x85ebca6b);t^=t>>>13;t=Math.imul(t,0xc2b2ae35);return((t^t>>>16)>>>0)/4294967296;}
+function zeichne(){
+  ctx.setTransform(skala,0,0,skala,0,0); ctx.globalAlpha=1;
+  const PY=H-120, RX=(W-STRASSE)/2; // Bildschirmposition des eigenen Autos, linke Strassenkante
+  // Kamera: eigenes Auto, am TV der Fuehrende
+  let kam=ich.x;
+  if(TV){let m=0;for(const p of st.spieler){const a=anzeige[p.id];if(a&&p.lebt)m=Math.max(m,a.x)};kam=m;}
+  const sy=s=>PY-(s-kam); // Strecke -> Bildschirm-y
+  // Gras + Baeume
+  ctx.fillStyle='#4caf50';ctx.fillRect(0,0,W,H);
+  const k0=Math.floor((kam-PY-200)/70), k1=Math.ceil((kam+H)/70)+2;
+  const bDunkel=sprite('b0',48,48,g=>baum(g,'#2e7d32')), bHell=sprite('b1',48,48,g=>baum(g,'#1b5e20'));
+  for(let k=k0;k<=k1;k++){const h=hash(k), links=h<0.5, rand=links?RX:W-RX;
+    if(rand<30) continue; const ox=8+hash(k*3+1)*(rand-30), x=links?RX-ox-10:W-RX+ox+10, y=sy(k*70+hash(k+7)*50);
+    if(hash(k*5+2)<0.35) continue;
+    ctx.drawImage(hash(k*7)<0.5?bDunkel:bHell,x-24,y-24,48,48);}
+  // Strasse
+  ctx.fillStyle='#e0e0e0';ctx.fillRect(RX-10,0,STRASSE+20,H);
+  ctx.fillStyle='#3a3d42';ctx.fillRect(RX,0,STRASSE,H);
+  ctx.fillStyle='#fff';const off=((kam%60)+60)%60;
+  for(let s=1;s<COLS;s++){for(let y=-60+off;y<H;y+=60){ctx.fillRect(RX+s*SPUR-3,y,6,32);}}
+  ctx.fillStyle='#ffd23f';ctx.fillRect(RX+4,0,4,H);ctx.fillRect(RX+STRASSE-8,0,4,H);
+  // Meter-Schilder
+  ctx.font='bold 13px system-ui';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  for(let m=Math.floor((kam-PY)/1000)*1000;m<kam+H;m+=1000){if(m<=0)continue;const y=sy(m);
+    ctx.fillStyle='#fff';ctx.fillRect(RX-10,y-1,STRASSE+20,3);ctx.fillStyle='#000a';ctx.fillText(m/10+' m',RX+12,y-6);}
+  // Verkehr
+  const i0=Math.floor((kam-PY-150-U*T)/ABST), i1=Math.ceil((kam+H-PY+150-U*T)/ABST);
+  for(let i=i0;i<=i1;i++){const y=sy(reihePos(i,T));for(const a of reihe(i)) autoMalen(RX+a.spur*SPUR+SPUR/2,y,a.farbe,1,false,a.lkw);}
+  // Geister (andere Spieler): halbtransparent, weich interpoliert, Namensschild in Spielerfarbe
+  const schilder=[];
+  schilderNeu();
+  for(const p of st.spieler){ if(p.id===id||(!p.x&&!p.y)) continue;
+    const a=anzeige[p.id]||(anzeige[p.id]={x:p.x,y:p.y});
+    if(Math.abs(p.x-a.x)>1500){a.x=p.x;} a.x+=(p.x-a.x)*0.25; a.y+=(p.y-a.y)*0.25;
+    const y=sy(a.x); if(y<-80||y>H+80) continue;
+    const x=RX+Math.max(SPUR/2,Math.min(STRASSE-SPUR/2,a.y));
+    autoMalen(x,y,p.farbe,TV?(p.lebt?1:0.35):(p.lebt?0.45:0.2),false); schilder.push([p,x,y-ALEN/2]);
+  }
+  for(const [p,x,y] of schilder) beschriftung(p,x,y,false);
+  // eigenes Auto (zuletzt = obenauf)
+  if(!TV&&id){const me=ich_p();
+    if(ich.lebt){const blink=ich.tl<SCHUTZ&&Math.floor(ich.tl*8)%2, x=RX+ich.spur*SPUR+SPUR/2;
+      if(turbo){ctx.fillStyle='#ffb703';for(let k=0;k<2;k++){ctx.beginPath();const fx=x+(k?12:-12);
+        ctx.moveTo(fx-6,PY+ALEN/2);ctx.lineTo(fx,PY+ALEN/2+18+Math.random()*14);ctx.lineTo(fx+6,PY+ALEN/2);ctx.fill();}}
+      autoMalen(x,PY,me.farbe,blink?0.4:1,true); beschriftung(me,x,PY-ALEN*0.56,true);}}
+  // Explosion
+  for(const p of teile){ctx.globalAlpha=Math.min(1,p.t*2);ctx.fillStyle=p.f;ctx.beginPath();ctx.arc(RX+p.x,sy(p.s),4+p.t*8,0,7);ctx.fill();}
+  ctx.globalAlpha=1; if(blitz>0){ctx.fillStyle='rgba(255,220,120,'+(blitz*2)+')';ctx.fillRect(0,0,W,H);}
+  hud(RX);
+}
+function zeit(s){s=Math.ceil(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function tacho(x,y,v){ // v in px/s -> km/h
+  const kmh=Math.round(v*0.3), r=46;
+  ctx.fillStyle='#000a';ctx.beginPath();ctx.arc(x,y,r+8,0,7);ctx.fill();
+  ctx.lineWidth=7;ctx.strokeStyle='#ffffff30';ctx.beginPath();ctx.arc(x,y,r,Math.PI*0.75,Math.PI*2.25);ctx.stroke();
+  const q=Math.min(1,kmh/270);ctx.strokeStyle=q>0.7?'#e63946':'#ffd23f';ctx.beginPath();ctx.arc(x,y,r,Math.PI*0.75,Math.PI*(0.75+1.5*q));ctx.stroke();
+  const wn=Math.PI*(0.75+1.5*q);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(wn)*(r-10),y+Math.sin(wn)*(r-10));ctx.stroke();
+  ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 20px system-ui';ctx.fillText(kmh,x,y+26);ctx.font='11px system-ui';ctx.fillText('km/h',x,y+40);
+  ctx.lineWidth=5;
+}
+const aWert=p=>p.best+' m';
+function hud(RX){
+  const rest=Math.max(0,st.rest-(performance.now()-stZeit)/1000); countdownTon(rest);
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=5;
+  const gross=t=>{ctx.font='bold 44px system-ui';ctx.strokeText(t,W/2,60);ctx.fillText(t,W/2,60);};
+  if(st.phase==='lobby'){gross(TV?'AUTO-PARTY':'Uebe schon mal!');
+    ctx.font='bold 20px system-ui';const t=TV?(st.spieler.length+' Autos bereit - '+location.host):'Warte auf den Start...';
+    ctx.strokeText(t,W/2,92);ctx.fillText(t,W/2,92);}
+  else if(st.phase==='countdown'){ctx.font='bold 130px system-ui';const t=String(Math.ceil(rest)||'LOS');
+    ctx.strokeText(t,W/2,H/2);ctx.fillText(t,W/2,H/2);}
+  else if(st.phase==='spiel'){gross(zeit(rest));
+    const s='VERKEHR '+(stufe+1)+'/'+STUFEN;
+    if(!TV){ctx.font='bold 22px system-ui';const t=Math.floor(ich.x/10)+' m';ctx.strokeText(t,W/2,92);ctx.fillText(t,W/2,92);}
+    ctx.font='bold 16px system-ui';ctx.fillStyle=stufe>=4?'#ff8a8a':'#fff';ctx.strokeText(s,W/2,TV?92:116);ctx.fillText(s,W/2,TV?92:116);ctx.fillStyle='#fff';
+    if(performance.now()/1000-stufeZeit<2){ctx.font='bold 34px system-ui';ctx.fillStyle='#ffd23f';ctx.strokeText('MEHR VERKEHR!',W/2,H*0.38);ctx.fillText('MEHR VERKEHR!',W/2,H*0.38);ctx.fillStyle='#fff';}}
+  if(!TV&&!ich.lebt&&st.phase!=='ende'){ctx.font='bold 34px system-ui';ctx.strokeText('BUMM! nochmal...',W/2,H/2);ctx.fillText('BUMM! nochmal...',W/2,H/2);}
+  if(!TV&&id&&st.phase!=='ende') tacho(62,H-62,ich.lebt?ich.v:0);
+  const breit=TV?300:Math.min(225,W*0.42);
+  rangliste(W-breit-12,12,breit,'BESTE STRECKE','#ffd23f',TV?12:6,aWert);
+  if(st.phase==='ende') endeScreen('ZIELFLAGGE!',H,aWert);
+  if(TV){document.getElementById('tvbtn').textContent=(st.phase==='spiel'||st.phase==='countdown')?'ABBRECHEN':'START';}
+}
+// ---------- Schleife (feste 120-Hz-Physik; Stufe aus der Rundenzeit, bevor neue Reihen entstehen)
+let alt=performance.now(), rest=0;
+function lauf(t){frameMessen(t-alt);rest+=Math.min(0.1,(t-alt)/1000);alt=t;
+  stufe=Math.min(STUFEN-1,Math.floor(fortschritt()*STUFEN));
+  if(stufe>stufeAlt){stufeAlt=stufe;stufeZeit=performance.now()/1000;ton(740,.1,'triangle',.06);setTimeout(()=>ton(990,.15,'triangle',.06),110);}
+  while(rest>=1/120){schritt(1/120);rest-=1/120;}zeichne();requestAnimationFrame(lauf);}
+requestAnimationFrame(lauf);
+</script></body></html>
