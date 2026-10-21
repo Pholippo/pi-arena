@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>PiArena – Handbuch für Schülerinnen und Schüler</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm 16mm; }
+  :root {
+    --ink: #1b1f24; --muted: #5b6470; --line: #d9dee5; --soft: #f3f5f8;
+    --accent: #0a7c66; --accent-soft: #e3f4ef; --warn: #b54708; --warn-soft: #fff4e5;
+    --code-bg: #14181d; --code-ink: #e8edf2;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; color: var(--ink); background: #fff;
+         font: 10.4pt/1.5 "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h2 { font-size: 19pt; margin: 0 0 4mm; padding-bottom: 2mm; border-bottom: 2.5px solid var(--accent); }
+  h2 .nr { color: var(--accent); margin-right: 2mm; }
+  h3 { font-size: 12.5pt; margin: 5mm 0 2mm; }
+  p { margin: 0 0 2.6mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin: 0.8mm 0; }
+  code { font: 9.4pt Consolas, "Cascadia Mono", monospace; background: var(--soft);
+         border: 1px solid var(--line); border-radius: 3px; padding: 0 1.2mm; }
+  pre { font: 9.3pt/1.45 Consolas, "Cascadia Mono", monospace; background: var(--code-bg); color: var(--code-ink);
+        border-radius: 6px; padding: 3mm 4mm; margin: 0 0 3.5mm; white-space: pre-wrap; break-inside: avoid; }
+  pre .k { color: #7ee0c3; } pre .c { color: #8b97a5; } pre .s { color: #ffd479; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 4mm; font-size: 9.6pt; break-inside: avoid; }
+  th, td { text-align: left; vertical-align: top; padding: 1.6mm 2.4mm; border-bottom: 1px solid var(--line); }
+  th { background: var(--soft); font-weight: 600; }
+  .seite { break-before: page; }
+  .box { border: 1.5px solid var(--line); border-radius: 7px; padding: 3mm 4mm; margin: 0 0 4mm; break-inside: avoid; }
+  .box.tipp { border-color: var(--accent); background: var(--accent-soft); }
+  .box.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .box b.t { display: block; margin-bottom: 1mm; }
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐"; font-size: 12pt; margin-right: 2mm; color: var(--accent); }
+  .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  figure { margin: 0 0 4mm; break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid var(--line); border-radius: 6px; display: block; }
+  figcaption { font-size: 8.8pt; color: var(--muted); margin-top: 1mm; }
+  .schritt { display: grid; grid-template-columns: 9mm 1fr; gap: 2mm; margin: 0 0 3mm; break-inside: avoid; }
+  .schritt .n { width: 7.5mm; height: 7.5mm; border-radius: 50%; background: var(--accent); color: #fff;
+                font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 10pt; }
+  .aufgabe { border: 2px solid var(--accent); border-radius: 8px; margin: 0 0 5mm; break-inside: avoid; }
+  .aufgabe .kopf { background: var(--accent); color: #fff; padding: 2mm 4mm; font-weight: 700; display: flex; justify-content: space-between; }
+  .aufgabe .inhalt { padding: 3mm 4mm 1mm; }
+  .stern { letter-spacing: 1px; }
+  .klein { font-size: 9pt; color: var(--muted); }
+  .taste { display: inline-block; border: 1px solid #9aa4b1; border-bottom-width: 2.5px; border-radius: 4px;
+           padding: 0 1.6mm; font: 600 8.8pt "Segoe UI", sans-serif; background: #fff; }
+
+  /* Deckblatt */
+  .deckblatt { height: 262mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .deckblatt .marke { font-size: 46pt; font-weight: 800; letter-spacing: -1px; margin-top: 18mm; }
+  .deckblatt .marke span { color: var(--accent); }
+  .deckblatt .unter { font-size: 15pt; color: var(--muted); margin-top: 2mm; }
+  .leds { display: flex; gap: 4mm; margin: 12mm 0 6mm; }
+  .leds i { width: 11mm; height: 11mm; border-radius: 50%; background: #d5dbe2; display: block; }
+  .leds i.an { background: #20c997; box-shadow: 0 0 0 2.5mm #20c99733; }
+  .deckblatt .fuer { border-top: 2px solid var(--line); padding-top: 4mm; font-size: 10.5pt; color: var(--muted); }
+  .inhalt-liste { columns: 2; column-gap: 8mm; font-size: 10.5pt; padding-left: 5mm; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ DECKBLATT -->
+<section class="deckblatt">
+  <div>
+    <div class="marke">Pi<span>Arena</span></div>
+    <div class="unter">Die Multiplayer-Arena für deinen Raspberry Pi.<br>Bauen, mitspielen, selbst programmieren.</div>
+    <div class="leds"><i class="an"></i><i class="an"></i><i class="an"></i><i class="an"></i><i class="an"></i><i class="an"></i><i></i><i></i><i></i><i></i></div>
+    <p style="font-size:11.5pt;max-width:150mm">
+      Die ganze Klasse spielt gegeneinander, jede und jeder am eigenen Pi mit der selbst gebauten Platine.
+      Die 10 LEDs zeigen deinen Punktestand. Wer zuerst alle 10 leuchten hat, gewinnt.
+      Und weil PiArena <b>Open Source</b> ist, darfst du jedes Spiel ändern oder dein eigenes einbauen.
+    </p>
+    <h3 style="margin-top:9mm">Inhalt</h3>
+    <ol class="inhalt-liste">
+      <li>Was ist PiArena?</li>
+      <li>Was du brauchst</li>
+      <li>Die Platine bauen</li>
+      <li>Den Pi vorbereiten</li>
+      <li>Das Terminal in 5 Minuten</li>
+      <li>Mitspielen</li>
+      <li>Die Spiele</li>
+      <li>So funktioniert der Code</li>
+      <li>Aufgaben: selbst programmieren</li>
+      <li>Open Source: deine Änderung teilen</li>
+      <li>Wenn etwas nicht geht</li>
+      <li>Für die Lehrkraft: Host starten</li>
+      <li>Spickzettel</li>
+    </ol>
+  </div>
+  <div class="fuer">
+    HTL-Werkstätte · Handbuch zum Austeilen · Projekt: github.com/Pholippo/pi-arena · Lizenz MIT<br>
+    Erstellt von Philipp Grabner (3AHEL) für den Werkstättenunterricht bei FL Götzhaber · Stand Oktober 2026
+  </div>
+</section>
+
+<!-- ============================================================ 1 -->
+<section class="seite">
+  <h2><span class="nr">1</span>Was ist PiArena?</h2>
+  <p>PiArena ist ein Partyspiel für die ganze Klasse. Ein Raspberry Pi vorne am Beamer ist der <b>Host</b>:
+     Er zeigt die Lobby, sagt die Runden an, zählt die Punkte und kürt am Ende den Sieger.
+     Alle anderen spielen am <b>eigenen Pi</b> mit ihrer <b>eigenen Platine</b> (10 LEDs, 3 Taster, 1 Buzzer).</p>
+
+  <figure>
+    <img src="../bilder/lobby.png" alt="Lobby am Monitor">
+    <figcaption>Die Lobby am Beamer: oben der Befehl zum Mitspielen, rechts die Rangliste, unten das Live-Schaltbild der Host-Platine.</figcaption>
+  </figure>
+
+  <div class="zwei">
+    <div>
+      <h3>So läuft eine Partie</h3>
+      <ol>
+        <li>Du tippst <b>einen Befehl</b> ins Terminal, dein Name erscheint am Beamer.</li>
+        <li>Jede Runde ist ein anderes Minispiel: Reaktion, Lauflicht, Tap-Marathon, Jump'n'Run …</li>
+        <li>Platz 1 / 2 / 3 bekommt <b>3 / 2 / 1 Punkte</b>. Die letzte Runde zählt doppelt.</li>
+        <li>Deine LEDs zeigen deinen Punktestand. <b>10 LEDs an = gewonnen.</b></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Was du dabei lernst</h3>
+      <ul>
+        <li>Löten und eine Schaltung prüfen</li>
+        <li>GPIO: LEDs schalten, Taster lesen, Töne erzeugen</li>
+        <li>Linux-Terminal</li>
+        <li>Python lesen und ändern</li>
+        <li>Netzwerk: Client, Server, IP-Adresse, Port</li>
+        <li>Mit Git und GitHub im Team arbeiten</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box tipp"><b class="t">Open Source heißt: Der Code gehört allen.</b>
+    Jede Zeile von PiArena ist öffentlich auf GitHub. Du darfst sie lesen, ändern, weitergeben und
+    verbessern. Die beste Änderung aus deiner Klasse kann im offiziellen Projekt landen und wird dann von
+    den nächsten Jahrgängen gespielt (Kapitel 10).</div>
+</section>
+
+<!-- ============================================================ 2 -->
+<section class="seite">
+  <h2><span class="nr">2</span>Was du brauchst</h2>
+  <div class="zwei">
+    <div>
+      <h3>Hardware</h3>
+      <ul class="check">
+        <li>Raspberry Pi 4 oder 5 mit Netzteil</li>
+        <li>microSD-Karte (ab 16 GB)</li>
+        <li>Monitor (HDMI), Tastatur, Maus</li>
+        <li>deine Platine (Kapitel 3)</li>
+        <li>Netzwerk: WLAN oder LAN-Kabel im selben Netz wie der Host</li>
+      </ul>
+      <h3>Software</h3>
+      <ul class="check">
+        <li>Raspberry Pi OS <b>mit Desktop</b> (Kapitel 4)</li>
+        <li>Python 3, gpiozero und Chromium sind dort schon dabei</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Bauteile für die Platine</h3>
+      <table>
+        <tr><th>Anzahl</th><th>Bauteil</th></tr>
+        <tr><td>10</td><td>LED 5 mm (Farbe egal)</td></tr>
+        <tr><td>10</td><td>Widerstand 220 Ω – 330 Ω</td></tr>
+        <tr><td>3</td><td>Taster (Drucktaster, schließend)</td></tr>
+        <tr><td>1</td><td><b>passiver</b> Buzzer (Piezo)</td></tr>
+        <tr><td>1</td><td>Lochrasterplatine</td></tr>
+        <tr><td>1</td><td>40-polige Buchsenleiste oder Jumper-Kabel</td></tr>
+        <tr><td>–</td><td>Draht, Lötzinn</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box"><b class="t">Kein Pi da?</b>
+    Mitspielen geht auch mit dem <b>Handy</b>: QR-Code am Beamer scannen, Namen eingeben, fertig.
+    Programmieren (Kapitel 9) geht auch am Laptop mit Python, dort ohne echte LEDs (Simulation).</div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section class="seite">
+  <h2><span class="nr">3</span>Die Platine bauen</h2>
+  <p>Alle Bauteile hängen zwischen einem <b>GPIO-Pin</b> des Pi und <b>GND</b> (Masse). Halte dich genau an die
+     Pin-Tabelle, denn das Programm erwartet jede LED und jeden Taster an genau diesem Pin.</p>
+
+  <svg viewBox="0 0 640 330" width="100%" style="margin-bottom:3mm" font-family="Segoe UI, Arial" font-size="11">
+    <rect x="10" y="10" width="150" height="310" rx="10" fill="#e3f4ef" stroke="#0a7c66" stroke-width="2"/>
+    <text x="85" y="32" text-anchor="middle" font-weight="700" font-size="13">Raspberry Pi</text>
+    <g font-family="Consolas, monospace" font-size="10.5">
+      <text x="20" y="56">GPIO 4  · Pin 7</text>
+      <text x="20" y="76">GPIO 17 · Pin 11</text>
+      <text x="20" y="96">GPIO 27 · Pin 13</text>
+      <text x="20" y="116">GPIO 22 · Pin 15</text>
+      <text x="20" y="136">GPIO 5  · Pin 29</text>
+      <text x="20" y="156">GPIO 6  · Pin 31</text>
+      <text x="20" y="176">GPIO 13 · Pin 33</text>
+      <text x="20" y="196">GPIO 19 · Pin 35</text>
+      <text x="20" y="216">GPIO 26 · Pin 37</text>
+      <text x="20" y="236">GPIO 21 · Pin 40</text>
+      <text x="20" y="262">GPIO 18 · Pin 12</text>
+      <text x="20" y="280">GPIO 23 · Pin 16</text>
+      <text x="20" y="298">GPIO 24 · Pin 18</text>
+      <text x="20" y="316">GPIO 25 · Pin 22</text>
+    </g>
+    <!-- LED-Leitungen -->
+    <g stroke="#1b1f24" stroke-width="1.6" fill="none">
+      <path d="M160 52 H250 M290 52 H360 M384 52 H580"/>
+      <path d="M160 72 H250 M290 72 H360 M384 72 H580"/>
+      <path d="M160 92 H250 M290 92 H360 M384 92 H580"/>
+      <path d="M160 112 H250 M290 112 H360 M384 112 H580"/>
+      <path d="M160 132 H250 M290 132 H360 M384 132 H580"/>
+      <path d="M160 152 H250 M290 152 H360 M384 152 H580"/>
+      <path d="M160 172 H250 M290 172 H360 M384 172 H580"/>
+      <path d="M160 192 H250 M290 192 H360 M384 192 H580"/>
+      <path d="M160 212 H250 M290 212 H360 M384 212 H580"/>
+      <path d="M160 232 H250 M290 232 H360 M384 232 H580"/>
+      <!-- Taster -->
+      <path d="M160 258 H350 M380 258 H580"/>
+      <path d="M160 276 H350 M380 276 H580"/>
+      <path d="M160 294 H350 M380 294 H580"/>
+      <!-- Buzzer -->
+      <path d="M160 312 H350 M392 312 H580"/>
+      <!-- Masse-Schiene -->
+      <path d="M580 45 V318" stroke="#0a7c66" stroke-width="3"/>
+    </g>
+    <!-- Widerstaende -->
+    <g fill="#fff" stroke="#1b1f24" stroke-width="1.6">
+      <rect x="250" y="46" width="40" height="12"/><rect x="250" y="66" width="40" height="12"/>
+      <rect x="250" y="86" width="40" height="12"/><rect x="250" y="106" width="40" height="12"/>
+      <rect x="250" y="126" width="40" height="12"/><rect x="250" y="146" width="40" height="12"/>
+      <rect x="250" y="166" width="40" height="12"/><rect x="250" y="186" width="40" height="12"/>
+      <rect x="250" y="206" width="40" height="12"/><rect x="250" y="226" width="40" height="12"/>
+    </g>
+    <!-- LEDs (Dreieck + Strich) -->
+    <g fill="#ffd479" stroke="#1b1f24" stroke-width="1.4">
+      <path d="M360 45 L360 59 L376 52 Z M376 45 V59"/><path d="M360 65 L360 79 L376 72 Z M376 65 V79"/>
+      <path d="M360 85 L360 99 L376 92 Z M376 85 V99"/><path d="M360 105 L360 119 L376 112 Z M376 105 V119"/>
+      <path d="M360 125 L360 139 L376 132 Z M376 125 V139"/><path d="M360 145 L360 159 L376 152 Z M376 145 V159"/>
+      <path d="M360 165 L360 179 L376 172 Z M376 165 V179"/><path d="M360 185 L360 199 L376 192 Z M376 185 V199"/>
+      <path d="M360 205 L360 219 L376 212 Z M376 205 V219"/><path d="M360 225 L360 239 L376 232 Z M376 225 V239"/>
+    </g>
+    <g stroke="#1b1f24" stroke-width="1.6"><path d="M376 52 H384 M376 72 H384 M376 92 H384 M376 112 H384 M376 132 H384 M376 152 H384 M376 172 H384 M376 192 H384 M376 212 H384 M376 232 H384"/></g>
+    <!-- Taster-Symbole -->
+    <g stroke="#1b1f24" stroke-width="1.6" fill="#fff">
+      <circle cx="350" cy="258" r="2.5"/><circle cx="380" cy="258" r="2.5"/><path d="M350 251 L380 251 M365 251 V245"/>
+      <circle cx="350" cy="276" r="2.5"/><circle cx="380" cy="276" r="2.5"/><path d="M350 269 L380 269 M365 269 V263"/>
+      <circle cx="350" cy="294" r="2.5"/><circle cx="380" cy="294" r="2.5"/><path d="M350 287 L380 287 M365 287 V281"/>
+      <rect x="350" y="304" width="42" height="16" rx="8" fill="#ffd479"/>
+    </g>
+    <text x="371" y="316" text-anchor="middle" font-size="9.5">+ Buzzer −</text>
+    <g font-size="10.5" fill="#5b6470" stroke="#fff" stroke-width="5" paint-order="stroke">
+      <text x="270" y="40" text-anchor="middle">220–330 Ω</text>
+      <text x="368" y="40" text-anchor="middle">LED</text>
+      <text x="470" y="56">LED 1 (links)</text>
+      <text x="470" y="236">LED 10 (rechts)</text>
+      <text x="470" y="262">Taster LINKS</text>
+      <text x="470" y="280">Taster MITTE</text>
+      <text x="470" y="298">Taster RECHTS</text>
+      <text x="470" y="316">Buzzer</text>
+    </g>
+    <text x="592" y="186" font-weight="700" fill="#0a7c66" transform="rotate(90 592 186)" text-anchor="middle">GND · z. B. Pin 6</text>
+  </svg>
+
+  <div class="zwei">
+    <div>
+      <h3>Worauf du achten musst</h3>
+      <ul>
+        <li><b>LED-Richtung:</b> langes Bein (Anode) zum Widerstand, kurzes Bein (Kathode, flache Seite) zu GND.</li>
+        <li><b>Jede LED braucht ihren Widerstand.</b> Ohne Widerstand gehen LED oder Pin kaputt.</li>
+        <li><b>Taster</b> brauchen keinen Widerstand. Der Pi schaltet intern einen Pull-up ein:
+            nicht gedrückt = HIGH, gedrückt = LOW.</li>
+        <li><b>Buzzer:</b> Es muss ein <i>passiver</i> sein, sonst kann er nur einen Ton. Plus an GPIO 25.</li>
+        <li>Alle Massen auf <b>eine</b> gemeinsame GND-Leitung.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Prüfen vor dem Anstecken</h3>
+      <ol>
+        <li>Sichtprüfung: keine Lötbrücken zwischen Nachbarpins.</li>
+        <li>Multimeter auf Durchgang: GND-Leitung hat zu <b>keinem</b> GPIO-Pin Durchgang
+            (außer bei gedrücktem Taster).</li>
+        <li>Pi <b>ausschalten</b>, dann Platine anstecken.</li>
+        <li>Test mit dem Programm: Kapitel 6, Punkt „Platine testen“.</li>
+      </ol>
+      <div class="box warn"><b class="t">⚠ Nie bei laufendem Pi stecken.</b>
+        Ein falscher Kontakt zwischen 5 V und einem GPIO-Pin zerstört den Pi.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section class="seite">
+  <h2><span class="nr">4</span>Den Pi vorbereiten</h2>
+  <p class="klein">Wenn dein Pi schon läuft und du am Desktop bist, spring direkt zu Kapitel 5.</p>
+
+  <div class="schritt"><div class="n">1</div><div>
+    Am Laptop den <b>Raspberry Pi Imager</b> installieren: <code>raspberrypi.com/software</code></div></div>
+  <div class="schritt"><div class="n">2</div><div>
+    microSD-Karte einstecken. Im Imager wählen: <b>Gerät</b> = dein Pi (4 oder 5),
+    <b>Betriebssystem</b> = „Raspberry Pi OS (64-bit)“ (die Variante <b>mit Desktop</b>),
+    <b>Speicher</b> = deine SD-Karte.</div></div>
+  <div class="schritt"><div class="n">3</div><div>
+    Bei <b>„Einstellungen bearbeiten“</b> eintragen:
+    <ul>
+      <li><b>Hostname:</b> eindeutig, z. B. <code>3ahel-pi-07</code>. Das ist später auch dein Standard-Spielername.</li>
+      <li><b>Benutzername und Passwort:</b> merken! Ohne Passwort kommst du nicht mehr rein.</li>
+      <li><b>WLAN:</b> Schul-WLAN, oder später LAN-Kabel verwenden.</li>
+      <li><b>Zeitzone:</b> Europe/Vienna, Tastatur: de.</li>
+    </ul></div></div>
+  <div class="schritt"><div class="n">4</div><div>
+    <b>Schreiben</b> klicken und warten. Karte in den Pi, Monitor, Tastatur, Maus anstecken, <b>zuletzt</b> das Netzteil.</div></div>
+  <div class="schritt"><div class="n">5</div><div>
+    Der erste Start dauert 1–2 Minuten. Fragen am Bildschirm beantworten. Updates darfst du überspringen.</div></div>
+
+  <div class="box tipp"><b class="t">Die IP-Adresse deines Pi</b>
+    Jedes Gerät im Netz hat eine Adresse, z. B. <code>10.74.21.39</code>. Deine findest du im Terminal mit
+    <code>hostname -I</code>. Du brauchst sie, wenn du später selbst einen Host startest.</div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section class="seite">
+  <h2><span class="nr">5</span>Das Terminal in 5 Minuten</h2>
+  <p>Das Terminal ist ein Fenster, in das du Befehle tippst. Öffnen: Symbol <code>&gt;_</code> oben in der Leiste
+     oder <span class="taste">Strg</span> + <span class="taste">Alt</span> + <span class="taste">T</span>.
+     Jeder Befehl wird mit <span class="taste">Enter</span> ausgeführt.</p>
+
+  <table>
+    <tr><th style="width:32%">Befehl</th><th>Was er macht</th></tr>
+    <tr><td><code>pwd</code></td><td>Zeigt, in welchem Ordner du gerade bist.</td></tr>
+    <tr><td><code>ls</code></td><td>Listet die Dateien im Ordner auf.</td></tr>
+    <tr><td><code>cd pi-arena</code></td><td>Wechselt in den Ordner <code>pi-arena</code>. <code>cd ..</code> geht eine Ebene zurück, <code>cd ~</code> nach Hause.</td></tr>
+    <tr><td><code>python3 datei.py</code></td><td>Startet ein Python-Programm.</td></tr>
+    <tr><td><code>hostname -I</code></td><td>Zeigt die IP-Adresse deines Pi.</td></tr>
+    <tr><td><code>ping 10.74.21.39</code></td><td>Prüft, ob ein anderes Gerät erreichbar ist.</td></tr>
+  </table>
+
+  <h3>Tasten, die dir Zeit sparen</h3>
+  <table>
+    <tr><td style="width:32%"><span class="taste">Tab</span></td><td>Ergänzt Datei- und Ordnernamen. Tipp <code>cd pi-</code> und drück Tab.</td></tr>
+    <tr><td><span class="taste">↑</span></td><td>Holt den letzten Befehl zurück. Nie wieder alles neu tippen.</td></tr>
+    <tr><td><span class="taste">Strg</span> + <span class="taste">C</span></td><td><b>Stoppt</b> das laufende Programm.</td></tr>
+    <tr><td><span class="taste">Strg</span> + <span class="taste">Shift</span> + <span class="taste">V</span></td><td>Einfügen im Terminal (normales Strg + V geht dort nicht).</td></tr>
+  </table>
+
+  <div class="box"><b class="t">Groß- und Kleinschreibung zählt.</b>
+    <code>Arena</code> und <code>arena</code> sind für Linux zwei verschiedene Ordner. Leerzeichen auch:
+    <code>python3 arena/host.py</code> braucht genau ein Leerzeichen nach <code>python3</code>.</div>
+</section>
+
+<!-- ============================================================ 6 -->
+<section class="seite">
+  <h2><span class="nr">6</span>Mitspielen</h2>
+  <p>Die Lehrkraft startet den Host vorne am Beamer. Am Beamer steht dann ein Befehl. Den tippst du genau so
+     ins Terminal <b>deines eigenen Pi</b>, zum Beispiel:</p>
+  <pre>curl http://10.74.21.39:8081/j | python3</pre>
+  <p class="klein">Das bedeutet: <code>curl</code> lädt das Spieler-Programm vom Host (<code>10.74.21.39</code>, Port <code>8081</code>),
+     und <code>| python3</code> startet es sofort. Du musst nichts installieren.</p>
+
+  <div class="schritt"><div class="n">1</div><div>Das Programm fragt <b>„Wie heisst du?“</b>. Namen oder Spitznamen eintippen, Enter.
+    Leer lassen = Hostname des Pi.</div></div>
+  <div class="schritt"><div class="n">2</div><div>Eine kurze Melodie bestätigt die Verbindung. Dein Name erscheint am Beamer in der Rangliste.</div></div>
+  <div class="schritt"><div class="n">3</div><div>Warten, bis die Lehrkraft startet. Ab jetzt nur noch Platine und Beamer anschauen.</div></div>
+
+  <h3>Was deine LEDs bedeuten</h3>
+  <table>
+    <tr><th style="width:42%">Die LEDs …</th><th>Bedeutung</th></tr>
+    <tr><td>LED 1 und LED 10 blinken abwechselnd</td><td>sucht den Host (noch nicht verbunden)</td></tr>
+    <tr><td>ein Licht wandert hin und her</td><td>verbunden, wartet auf den Start</td></tr>
+    <tr><td>von außen nach innen + Piepsen</td><td>Countdown, gleich geht's los</td></tr>
+    <tr><td>einige LEDs leuchten fest</td><td>dein Punktestand</td></tr>
+  </table>
+
+  <h3>Platine testen</h3>
+  <p>Bevor die Partie startet, siehst du am Beamer unten rechts das Feld <b>LIVE-GPIO</b> nur für die Host-Platine.
+     Deine eigene testest du am einfachsten im ersten Spiel: Drück im Countdown die Taster, jeder Druck macht einen Klick-Ton.
+     Bleibt eine LED dunkel, prüf Richtung und Lötstelle (Kapitel 3).</p>
+
+  <div class="box"><b class="t">Zwei Befehle am Beamer (WLAN und KABEL)?</b>
+    Nimm den, der zu deinem Netz passt: Pi mit LAN-Kabel → KABEL, sonst WLAN.
+    Rausfliegen ist kein Problem: Befehl mit <span class="taste">↑</span> wiederholen und <b>denselben Namen</b> eingeben.
+    Deine Punkte bleiben erhalten.</div>
+</section>
+
+<!-- ============================================================ 7 -->
+<section class="seite">
+  <h2><span class="nr">7</span>Die Spiele</h2>
+  <h3>Taster-Runden (auf deiner Platine)</h3>
+  <table>
+    <tr><th style="width:24%">Spiel</th><th>So geht's</th><th style="width:22%">Taster</th></tr>
+    <tr><td><b>REAKTIONS-BLITZ</b></td><td>Alle LEDs blitzen auf → sofort drücken. 3 Versuche. Zu früh = +1000 ms Strafe.</td><td>MITTE</td></tr>
+    <tr><td><b>LAUFLICHT-STOPP</b></td><td>Ein Licht läuft hin und her. Stopp es genau in der Mitte (LED 5 oder 6). 3×, immer schneller.</td><td>MITTE</td></tr>
+    <tr><td><b>TAP-MARATHON</b></td><td>10 Sekunden so oft drücken wie möglich. Die LEDs füllen sich.</td><td>alle drei</td></tr>
+    <tr><td><b>ZÄHL DIE PIEPS</b></td><td>Der Buzzer piept mehrmals. Mitzählen, dann die Zahl einstellen. Richtig und schnell gewinnt.</td><td>RECHTS +1, LINKS −1, MITTE fertig</td></tr>
+  </table>
+
+  <h3>Browser-Runden (am Bildschirm)</h3>
+  <p>Bei diesen Runden geht am Pi <b>von selbst ein Browser im Vollbild</b> auf. Alle sind in derselben Welt,
+     du siehst die anderen mit ihren Namen. Dein eigener Spieler ist mit <b>„DU“</b> markiert.</p>
+  <div class="zwei">
+    <figure><img src="../bilder/ninja-race.png" alt="NINJA-RACE"><figcaption>NINJA-RACE</figcaption></figure>
+    <figure><img src="../bilder/auto-party.png" alt="AUTO-PARTY"><figcaption>AUTO-PARTY</figcaption></figure>
+  </div>
+  <table>
+    <tr><th style="width:24%">Spiel</th><th>So geht's</th><th style="width:30%">Steuerung</th></tr>
+    <tr><td><b>NINJA-RACE</b></td><td>Jump'n'Run bis ins Ziel. Schnellste Zeit gewinnt.</td><td><span class="taste">◀</span><span class="taste">▶</span> laufen, <span class="taste">Leertaste</span> springen</td></tr>
+    <tr><td><b>FLAPPY-PARTY</b></td><td>Vogel durch die Röhren. Abgestürzt? Nach 1 s geht's weiter, dein bester Versuch zählt.</td><td><span class="taste">Leertaste</span></td></tr>
+    <tr><td><b>AUTO-PARTY</b></td><td>Dem Verkehr ausweichen, es wird immer schneller.</td><td><span class="taste">◀</span><span class="taste">▶</span> Spur, <span class="taste">▲</span> Turbo</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ 8 -->
+<section class="seite">
+  <h2><span class="nr">8</span>So funktioniert der Code</h2>
+  <p>Zuerst holst du dir den Code auf deinen Pi (einmal, braucht Internet):</p>
+  <pre>cd ~
+git clone https://github.com/Pholippo/pi-arena.git
+cd pi-arena</pre>
+
+  <h3>Welche Datei macht was?</h3>
+  <table>
+    <tr><th style="width:34%">Datei</th><th>Inhalt</th></tr>
+    <tr><td><code>arena/minispiele.py</code></td><td>⭐ <b>Alle Taster-Spiele und die Töne.</b> Hier baust du deine eigenen Spiele.</td></tr>
+    <tr><td><code>arena/spieler.py</code></td><td>Das Programm für jeden Schüler-Pi: verbindet sich mit dem Host, steuert deine Platine.</td></tr>
+    <tr><td><code>arena/host.py</code></td><td>Startet den Host (das Programm am Beamer).</td></tr>
+    <tr><td><code>arena/ablauf.py</code></td><td>Der Spielablauf: Lobby, Runde, Punkte, Sieger.</td></tr>
+    <tr><td><code>arena/monitor.py</code></td><td>Alles, was am Beamer gezeichnet wird.</td></tr>
+    <tr><td><code>arena/webserver.py</code></td><td>Der Server, mit dem alle Pis und Handys reden.</td></tr>
+    <tr><td><code>arena/browserspiele.py</code></td><td>Server für NINJA, FLAPPY und AUTO.</td></tr>
+    <tr><td><code>tools/web-vorlagen/</code></td><td>Die Browser-Spiele zum Ändern (HTML + JavaScript).</td></tr>
+    <tr><td><code>tests/run_all.py</code></td><td>Prüft automatisch, ob noch alles funktioniert.</td></tr>
+  </table>
+
+  <h3>Was passiert in einer Runde?</h3>
+  <svg viewBox="0 0 640 150" width="100%" font-family="Segoe UI, Arial" font-size="11.5">
+    <defs><marker id="pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#0a7c66"/></marker></defs>
+    <rect x="10" y="20" width="180" height="110" rx="10" fill="#e3f4ef" stroke="#0a7c66" stroke-width="2"/>
+    <text x="100" y="45" text-anchor="middle" font-weight="700">HOST (Beamer)</text>
+    <text x="100" y="68" text-anchor="middle">wählt das Spiel</text>
+    <text x="100" y="86" text-anchor="middle">+ Zufallszahl („Seed“)</text>
+    <text x="100" y="112" text-anchor="middle">sortiert, vergibt Punkte</text>
+    <rect x="450" y="20" width="180" height="110" rx="10" fill="#f3f5f8" stroke="#5b6470" stroke-width="2"/>
+    <text x="540" y="45" text-anchor="middle" font-weight="700">DEIN PI</text>
+    <text x="540" y="68" text-anchor="middle">spielt das Spiel lokal</text>
+    <text x="540" y="86" text-anchor="middle">misst deine Zeit</text>
+    <text x="540" y="112" text-anchor="middle">LEDs = Punktestand</text>
+    <path d="M195 60 H445" stroke="#0a7c66" stroke-width="2" marker-end="url(#pf)"/>
+    <text x="320" y="52" text-anchor="middle">① „Runde 3: REAKTION, Seed 4711“</text>
+    <path d="M445 100 H195" stroke="#0a7c66" stroke-width="2" marker-end="url(#pf)"/>
+    <text x="320" y="92" text-anchor="middle">② Ergebnis: „312 ms“</text>
+  </svg>
+  <p><b>Der Trick:</b> Alle Pis bekommen dieselbe Zufallszahl. Darum blitzen alle LEDs in der Klasse
+     gleichzeitig, obwohl jedes Spiel auf dem eigenen Pi läuft. Gemessen wird bei dir, das Netzwerk bremst nicht.</p>
+</section>
+
+<section class="seite">
+  <h3 style="margin-top:0">Ein Minispiel von innen</h3>
+  <p>Jedes Spiel ist eine Python-Funktion in <code>arena/minispiele.py</code>. Sie bekommt drei Dinge:</p>
+  <table>
+    <tr><td style="width:12%"><code>b</code></td><td>deine <b>Platine</b> (das Brett). Damit schaltest du LEDs, liest Taster, spielst Töne.</td></tr>
+    <tr><td><code>p</code></td><td>Einstellungen vom Host (meistens brauchst du sie nicht).</td></tr>
+    <tr><td><code>rng</code></td><td>der <b>gemeinsame Zufall</b>. Bei allen Pis gleich.</td></tr>
+  </table>
+
+  <h3>Die wichtigsten Befehle für die Platine</h3>
+  <table>
+    <tr><th style="width:38%">Befehl</th><th>Was er macht</th></tr>
+    <tr><td><code>b.zeige([1,1,0,0,0,0,0,0,0,0])</code></td><td>LEDs schalten: 1 = an, 0 = aus. Hier: LED 1 und 2 an.</td></tr>
+    <tr><td><code>b.zeige([1] * N)</code></td><td>alle 10 LEDs an (<code>N</code> ist 10). <code>[0] * N</code> = alle aus.</td></tr>
+    <tr><td><code>b.pause(0.5)</code></td><td>0,5 Sekunden warten.</td></tr>
+    <tr><td><code>b.warte(2)</code></td><td>bis zu 2 Sekunden auf einen Taster warten. Ergebnis: <code>("mitte", zeitpunkt)</code> oder <code>None</code>.</td></tr>
+    <tr><td><code>b.leeren()</code></td><td>alte Tastendrücke vergessen (vor jeder neuen Eingabe).</td></tr>
+    <tr><td><code>b.ton(T_SUPER)</code></td><td>einen fertigen Ton spielen. <code>b.ton(kurz("A5", 0.1))</code> spielt eine einzelne Note.</td></tr>
+    <tr><td><code>balken(4)</code></td><td>erzeugt das Muster „4 LEDs von links an“, z. B. für <code>b.zeige(balken(4))</code>.</td></tr>
+  </table>
+
+  <h3>Was ein Spiel zurückgibt</h3>
+  <pre><span class="k">return</span> {<span class="s">"wert"</span>: 312, <span class="s">"ok"</span>: True, <span class="s">"text"</span>: <span class="s">"312 ms"</span>}</pre>
+  <ul>
+    <li><code>wert</code>: die Zahl, nach der sortiert wird (Zeit, Treffer, Punkte …)</li>
+    <li><code>ok</code>: <code>True</code>, wenn das Ergebnis gültig ist</li>
+    <li><code>text</code>: was am Beamer neben deinem Namen steht</li>
+  </ul>
+
+  <div class="box warn"><b class="t">⚠ Nie <code>time.sleep()</code> verwenden.</b>
+    Immer <code>b.pause()</code> oder <code>b.warte()</code>. Nur dann kann die Lehrkraft eine Runde überspringen.</div>
+</section>
+
+<!-- ============================================================ 9 -->
+<section class="seite">
+  <h2><span class="nr">9</span>Aufgaben: selbst programmieren</h2>
+  <p>Die Aufgaben werden Schritt für Schritt schwerer. Zum Ändern öffnest du die Datei in <b>Thonny</b>
+     (Startmenü → Entwicklung) oder im Terminal mit <code>nano arena/minispiele.py</code>.</p>
+
+  <div class="box tipp"><b class="t">Deine Änderung sofort ausprobieren</b>
+    Du startest einfach selbst einen Host auf deinem Pi, der nur dein Spiel spielt:
+    <pre style="margin:2mm 0">cd ~/pi-arena
+python3 arena/host.py --fenster --nur reaktion</pre>
+    Dann <span class="taste">◀</span> = Demo-Bots dazu, <span class="taste">Leertaste</span> = Start,
+    <span class="taste">Esc</span> = beenden. Deine Platine spielt mit.
+    Ohne Platine (z. B. am Laptop) zusätzlich <code>--sim</code> anhängen, dann drückst du die Taster mit
+    <span class="taste">A</span> <span class="taste">S</span> <span class="taste">D</span>.</div>
+
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 1 · Eigene Siegesmelodie</span><span class="stern">★☆☆☆☆</span></div><div class="inhalt">
+    <p>Such in <code>arena/minispiele.py</code> die Zeile mit <code>FANFARE = lied(…)</code>. Schreib deine eigene Melodie.</p>
+    <pre>FANFARE = lied(<span class="s">"C6 C6 G5 C6 E6:2 - C6 E6 G6:3"</span>, 0.11)</pre>
+    <ul>
+      <li>Noten: <code>C D E F G A B</code> + Oktave, z. B. <code>A4</code> (440 Hz). Halbtöne: <code>C#5</code>.</li>
+      <li><code>:2</code> = doppelt so lang, <code>-</code> = Pause. Die Zahl am Ende ist das Tempo in Sekunden pro Note.</li>
+    </ul>
+    <p><b>Geschafft, wenn:</b> bei der Siegerehrung deine Melodie spielt. Tipp: <code>T_SUPER</code> ist kürzer und kommt öfter.</p>
+  </div></div>
+
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 2 · REAKTIONS-BLITZ anpassen</span><span class="stern">★★☆☆☆</span></div><div class="inhalt">
+    <p>Such die Funktion <code>def spiel_reaktion(b, p, rng):</code>.</p>
+    <ol>
+      <li>Statt 3 Versuchen sollen es <b>5</b> sein. Finde die <code>3</code> in <code>range(3)</code> und im Status-Text.</li>
+      <li>Die Strafe für einen Frühstart soll <b>2000 ms</b> sein.</li>
+      <li>Ändere auch die Beschreibung (<code>"kurz"</code>) in der Tabelle <code>SPIELE</code> unten in der Datei.</li>
+    </ol>
+    <p><b>Geschafft, wenn:</b> der Test mit <code>--nur reaktion</code> 5 Blitze zeigt und am Beamer der neue Text steht.</p>
+  </div></div>
+</section>
+
+<section>
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 3 · Ein verstecktes Spiel einschalten</span><span class="stern">★★☆☆☆</span></div><div class="inhalt">
+    <p>In <code>arena/minispiele.py</code> steht schon ein fertiges Übungsspiel: <b>MORSE-ZÄHLER</b> (<code>spiel_morse</code>).
+       Die LEDs blitzen 1 bis 5 Mal, du drückst MITTE genauso oft. Lies die Funktion Zeile für Zeile, jede hat einen Kommentar.</p>
+    <ol>
+      <li>Probier es aus: <code>python3 arena/host.py --fenster --nur morse</code></li>
+      <li>Damit es auch in der normalen Partie vorkommt: In <code>arena/einstellungen.py</code> steht
+          <code>DEAKTIVIERT = {"binaer", "simon", "morse"}</code>. Lösch dort <code>, "morse"</code>.
+          (Bonus: Dann sind <code>simon</code> und <code>binaer</code> die nächsten versteckten Spiele.)</li>
+      <li>Mach es schwerer: 1 bis <b>8</b> Blitze, und sie werden schneller.</li>
+    </ol>
+  </div></div>
+
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 4 · Dein eigenes Minispiel</span><span class="stern">★★★★☆</span></div><div class="inhalt">
+    <p>Bau ein ganz neues Spiel. Ideen: <b>Hau den Lukas</b> (so fest wie möglich = so schnell 2× hintereinander drücken),
+       <b>Links-Rechts</b> (eine LED zeigt links oder rechts, richtigen Taster drücken), <b>Ton-Höhe</b> (hoch oder tief?).</p>
+    <p>Vorlage zum Kopieren:</p>
+<pre><span class="k">def</span> spiel_links_rechts(b, p, rng):
+    <span class="c">"""Eine LED links oder rechts leuchtet -> richtigen Taster druecken."""</span>
+    punkte = 0
+    <span class="k">for</span> runde <span class="k">in</span> range(10):
+        seite = rng.choice([<span class="s">"links"</span>, <span class="s">"rechts"</span>])  <span class="c"># bei allen gleich</span>
+        <span class="k">if</span> seite == <span class="s">"links"</span>:
+            b.zeige([1, 1, 1, 0, 0, 0, 0, 0, 0, 0])
+        <span class="k">else</span>:
+            b.zeige([0, 0, 0, 0, 0, 0, 0, 1, 1, 1])
+        b.leeren()
+        e = b.warte(1.0)                          <span class="c"># 1 Sekunde Zeit</span>
+        <span class="k">if</span> e <span class="k">and</span> e[0] == seite:
+            punkte += 1
+            b.ton(T_TREFFER)
+        <span class="k">else</span>:
+            b.ton(T_FEHL)
+        b.zeige([0] * N)
+        b.pause(0.3)
+    <span class="k">return</span> {<span class="s">"wert"</span>: punkte, <span class="s">"ok"</span>: True, <span class="s">"text"</span>: f<span class="s">"{punkte} von 10"</span>}</pre>
+    <p>Dann in der Tabelle <code>SPIELE</code> eintragen (schau dir die anderen Einträge als Muster an):</p>
+<pre><span class="s">"linksrechts"</span>: {<span class="s">"handy"</span>: False, <span class="s">"name"</span>: <span class="s">"LINKS-RECHTS"</span>, <span class="s">"fn"</span>: spiel_links_rechts,
+                <span class="s">"besser"</span>: <span class="s">"hoch"</span>, <span class="s">"trost"</span>: 0, <span class="s">"dauer"</span>: 20,
+                <span class="s">"kurz"</span>: <span class="s">"Links oder rechts? Richtigen Taster druecken!"</span>,
+                <span class="s">"tasten"</span>: (<span class="s">"LINKS"</span>, <span class="s">""</span>, <span class="s">"RECHTS"</span>)},</pre>
+    <p class="klein"><code>besser</code>: <code>"hoch"</code> = größter Wert gewinnt, <code>"tief"</code> = kleinster.
+       <code>dauer</code>: spätestens nach so vielen Sekunden wertet der Host aus.
+       Texte am Beamer ohne Umlaute schreiben (<code>ae oe ue</code>).</p>
+    <p><b>Geschafft, wenn:</b> <code>python3 arena/host.py --fenster --nur linksrechts</code> dein Spiel zeigt.</p>
+  </div></div>
+</section>
+
+<section class="seite">
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 5 · Browser-Spiel schwerer machen</span><span class="stern">★★★☆☆</span></div><div class="inhalt">
+    <p>Die Browser-Spiele sind HTML + JavaScript. Du änderst sie in <code>tools/web-vorlagen/</code>,
+       danach baut ein Befehl die fertigen Spiele.</p>
+    <ol>
+      <li>Öffne <code>tools/web-vorlagen/flappy.tpl.html</code> und such die Zeile mit <code>const WH=600</code>.</li>
+      <li><code>LUECKE=175</code> ist die Höhe der Lücke zwischen den Röhren. Mach sie kleiner, z. B. <code>140</code>.
+          <code>SPEED=190</code> ist das Tempo.</li>
+      <li>Bauen: <code>python3 tools/web-vorlagen/build.py</code></li>
+      <li>Testen: <code>python3 arena/browserspiele.py --spiel flappy</code> und im Browser <code>http://127.0.0.1:8082</code> öffnen.</li>
+    </ol>
+    <p>Für <b>AUTO-PARTY</b> (<code>auto.tpl.html</code>): <code>V0_PLUS</code> und <code>VMAX_PLUS</code> = wie viel schneller es während der Runde wird.</p>
+    <div class="box warn" style="margin-top:2mm"><b class="t">⚠ Nie direkt in <code>arena/web/*.html</code> ändern.</b>
+      Diese Dateien werden von <code>build.py</code> überschrieben. Immer die <code>.tpl.html</code>-Vorlage ändern.</div>
+  </div></div>
+
+  <div class="aufgabe"><div class="kopf"><span>Aufgabe 6 · Profi: Teste deine Änderung</span><span class="stern">★★★★★</span></div><div class="inhalt">
+    <p>Bevor du eine Änderung teilst, prüfst du, ob du nichts kaputt gemacht hast:</p>
+    <pre>python3 tests/run_all.py</pre>
+    <p>Am Ende muss <code>GESAMT: OK</code> stehen. Die Tests starten einen echten Host mit simulierten Spielern und spielen
+       eine ganze Partie durch. Steht dort <code>FEHLER</code>, zeigt die Ausgabe darüber, welcher Teil kaputt ist.</p>
+  </div></div>
+
+  <div class="box"><b class="t">Wenn du nicht weiterkommst</b>
+    <ul style="margin:0">
+      <li>Fehlermeldung genau lesen: Die letzte Zeile sagt, was falsch ist, und die Zeilennummer, wo.</li>
+      <li>Typische Fehler: Einrückung (immer 4 Leerzeichen), vergessener Doppelpunkt nach <code>if</code> / <code>for</code> / <code>def</code>,
+          fehlendes Komma in der Tabelle <code>SPIELE</code>.</li>
+      <li>Alles kaputt? <code>git checkout arena/minispiele.py</code> stellt die Datei wieder her.</li>
+    </ul></div>
+</section>
+
+<!-- ============================================================ 10 -->
+<section class="seite">
+  <h2><span class="nr">10</span>Open Source: deine Änderung teilen</h2>
+  <p>PiArena steht unter der <b>MIT-Lizenz</b>: Jede und jeder darf den Code benutzen, ändern und weitergeben.
+     Mit <b>Git</b> speicherst du Versionen deines Codes, auf <b>GitHub</b> teilst du sie. So kommt deine Änderung ins Projekt:</p>
+
+  <div class="schritt"><div class="n">1</div><div><b>GitHub-Konto</b> anlegen auf <code>github.com</code> (gratis). Einmal am Pi einrichten:
+    <pre style="margin-top:1.5mm">git config --global user.name "Dein Name"
+git config --global user.email "deine@mail.at"</pre></div></div>
+  <div class="schritt"><div class="n">2</div><div><b>Fork:</b> Auf <code>github.com/Pholippo/pi-arena</code> oben rechts auf <b>Fork</b> klicken.
+    Jetzt hast du eine eigene Kopie, in der du alles darfst.</div></div>
+  <div class="schritt"><div class="n">3</div><div><b>Deine Kopie holen</b> (statt <code>DEIN-NAME</code> deinen GitHub-Namen):
+    <pre style="margin-top:1.5mm">cd ~
+git clone https://github.com/DEIN-NAME/pi-arena.git
+cd pi-arena</pre></div></div>
+  <div class="schritt"><div class="n">4</div><div><b>Branch</b> anlegen, ein eigener Zweig für deine Änderung:
+    <pre style="margin-top:1.5mm">git switch -c spiel-links-rechts</pre></div></div>
+  <div class="schritt"><div class="n">5</div><div><b>Ändern, testen</b> (<code>python3 tests/run_all.py</code>), dann <b>speichern und hochladen</b>:
+    <pre style="margin-top:1.5mm">git add arena/minispiele.py
+git commit -m "Neues Minispiel LINKS-RECHTS"
+git push -u origin spiel-links-rechts</pre>
+    <p class="klein">Beim <code>push</code> fragt Git nach Benutzername und Passwort. Als Passwort brauchst du ein
+       <b>Token</b>: GitHub → Settings → Developer settings → Personal access tokens.</p></div></div>
+  <div class="schritt"><div class="n">6</div><div><b>Pull Request:</b> Auf GitHub erscheint „Compare &amp; pull request“. Klicken und kurz schreiben,
+    <b>was</b> du geändert hast und <b>wie</b> du es getestet hast. Das Projekt-Team schaut drüber und übernimmt es.</div></div>
+
+  <div class="zwei">
+    <div class="box tipp"><b class="t">Gute Pull Requests</b>
+      <ul style="margin:0">
+        <li>eine Änderung pro Pull Request</li>
+        <li>Tests laufen grün</li>
+        <li>deutsche Namen und Kommentare, wie im restlichen Code</li>
+        <li>einfach vor clever</li>
+      </ul></div>
+    <div class="box warn"><b class="t">Nicht hochladen</b>
+      <ul style="margin:0">
+        <li>Passwörter, Tokens</li>
+        <li>Fotos oder echte Namen von Mitschülern</li>
+        <li>große Dateien (Videos)</li>
+      </ul></div>
+  </div>
+  <p class="klein">Keine Zeit, aber eine Idee oder einen Fehler gefunden? Auf GitHub unter <b>Issues</b> → <b>New issue</b> beschreiben.
+     Mehr Details stehen in <code>MITMACHEN.md</code> im Projekt.</p>
+</section>
+
+<!-- ============================================================ 11 -->
+<section class="seite">
+  <h2><span class="nr">11</span>Wenn etwas nicht geht</h2>
+  <table>
+    <tr><th style="width:36%">Problem</th><th>Lösung</th></tr>
+    <tr><td>LED 1 und 10 blinken ewig (Host nicht gefunden)</td><td>Richtigen Befehl (WLAN / KABEL) genommen? <code>ping</code> + IP vom Beamer probieren.
+      Keine Antwort = anderes Netz oder das WLAN sperrt Geräte untereinander → LAN-Kabel verwenden.</td></tr>
+    <tr><td><code>GPIO busy</code> / <code>GPIO … nicht nutzbar</code></td><td>Ein anderes Programm benutzt die Pins, meistens <b>Thonny</b>. Dort auf <b>Stop</b> klicken oder Thonny schließen.
+      Oder: <code>pkill -f spieler</code>, dann Befehl neu starten.</td></tr>
+    <tr><td>Eine LED bleibt dunkel</td><td>LED verkehrt herum? Lötstelle? Richtiger Pin (Kapitel 3)?</td></tr>
+    <tr><td>Kein Ton</td><td>Buzzer muss <b>passiv</b> sein und an GPIO 25 hängen. Plus und Minus prüfen.</td></tr>
+    <tr><td>Browser-Runde flackert</td><td>Andere Browserfenster schließen. Programm mit <span class="taste">Strg</span>+<span class="taste">C</span> stoppen,
+      Befehl mit <span class="taste">↑</span> wiederholen, gleichen Namen eingeben.</td></tr>
+    <tr><td>Browser geht nicht auf</td><td>Programm einmal neu starten. Notfalls die Adresse vom Beamer (<code>…:8082</code>) selbst im Browser öffnen
+      und <b>genau denselben Namen</b> wie in der Rangliste eingeben.</td></tr>
+    <tr><td><code>command not found</code></td><td>Tippfehler? Groß-/Kleinschreibung? Leerzeichen?</td></tr>
+    <tr><td><code>IndentationError</code> / <code>SyntaxError</code></td><td>Im eigenen Code: Einrückung, Doppelpunkt, Klammern, Komma prüfen. Die Fehlermeldung nennt die Zeile.</td></tr>
+    <tr><td><code>Address already in use</code></td><td>Es läuft schon ein Host. <code>./stop.sh</code> im Ordner <code>pi-arena</code> beendet alles.</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ 12 -->
+<section class="seite">
+  <h2><span class="nr">12</span>Für die Lehrkraft: Host starten</h2>
+  <p>Der Host läuft auf <b>einem</b> Pi mit Beamer. Die Schüler-Pis brauchen nichts installiert,
+     sie holen sich ihr Programm beim Beitreten vom Host.</p>
+  <pre>cd ~
+git clone https://github.com/Pholippo/pi-arena.git
+cd pi-arena
+./install.sh       <span class="c"># einmal: prüft Python, pygame, gpiozero, Chromium</span>
+./start.sh         <span class="c"># Host im Vollbild starten</span></pre>
+  <p class="klein">Kein Internet am Pi? Auf GitHub <b>Code → Download ZIP</b>, per USB-Stick in den Home-Ordner entpacken,
+     Ordner in <code>pi-arena</code> umbenennen, dann <code>bash install.sh</code>.</p>
+
+  <h3>Moderieren mit den 3 Tastern der Host-Platine</h3>
+  <table>
+    <tr><th>Wann</th><th>LINKS</th><th>MITTE</th><th>RECHTS</th></tr>
+    <tr><td>Lobby</td><td>Demo-Bots an / aus</td><td><b>Partie starten</b></td><td>–</td></tr>
+    <tr><td>Runde läuft</td><td>–</td><td>–</td><td><b>Runde überspringen</b></td></tr>
+    <tr><td>Ergebnis</td><td>–</td><td>sofort weiter</td><td>–</td></tr>
+    <tr><td>Siegerehrung</td><td>–</td><td>neue Partie</td><td>–</td></tr>
+  </table>
+  <p class="klein">Tastatur am Host: <span class="taste">Leertaste</span> = MITTE, <span class="taste">◀</span> = LINKS,
+     <span class="taste">▶</span> = RECHTS, <span class="taste">Esc</span> = zurück in die Lobby / beenden.</p>
+
+  <h3>Nützliche Start-Optionen</h3>
+  <table>
+    <tr><td style="width:38%"><code>./start.sh --zuschauer</code></td><td>Host spielt nicht mit, Taster nur zum Moderieren</td></tr>
+    <tr><td><code>./start.sh --runden 6</code></td><td>kürzere Partie (Standard 10 Runden)</td></tr>
+    <tr><td><code>./start.sh --ohne-web</code></td><td>nur Taster-Spiele, keine Browser-Runden</td></tr>
+    <tr><td><code>./start.sh --nur reaktion,tap</code></td><td>nur bestimmte Spiele</td></tr>
+    <tr><td><code>./install.sh --autostart</code></td><td>Host startet nach jedem Einschalten von selbst</td></tr>
+    <tr><td><code>./stop.sh</code></td><td>alles beenden</td></tr>
+  </table>
+
+  <div class="box"><b class="t">Datenschutz</b>
+    Jede und jeder startet das Programm am eigenen Pi selbst, der Host greift nie auf fremde Pis zu.
+    Gespeichert werden nur Spielname (Spitznamen erlaubt) und Punkte, und nur im Arbeitsspeicher des Hosts.
+    Kein Konto, keine Cloud, kein Internet nötig. Namen und Punkte sind für alle im Netz sichtbar, bitte vorher ansagen.</div>
+  <p class="klein">Ausführliche Fassung mit allen Optionen und Fehlerfällen: <code>ANLEITUNG.md</code> im Projekt.</p>
+</section>
+
+<!-- ============================================================ 13 -->
+<section class="seite">
+  <h2><span class="nr">13</span>Spickzettel</h2>
+  <div class="zwei">
+    <div>
+      <h3 style="margin-top:0">Mitspielen</h3>
+      <pre>curl http://IP-VOM-HOST:8081/j | python3</pre>
+      <h3>Code holen und testen</h3>
+      <pre>cd ~
+git clone https://github.com/Pholippo/pi-arena.git
+cd pi-arena
+python3 arena/host.py --fenster --nur reaktion
+python3 tests/run_all.py</pre>
+      <h3>Git</h3>
+      <pre>git switch -c mein-branch
+git add DATEI
+git commit -m "was ich gemacht habe"
+git push -u origin mein-branch
+git status     <span class="c"># was hab ich geändert?</span>
+git diff       <span class="c"># genau welche Zeilen?</span></pre>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Platine (Python)</h3>
+      <pre>b.zeige([1]*N)      <span class="c"># alle LEDs an</span>
+b.zeige([0]*N)      <span class="c"># alle aus</span>
+b.zeige(balken(3))  <span class="c"># 3 von links</span>
+b.pause(0.5)        <span class="c"># warten</span>
+b.leeren()          <span class="c"># Tasten vergessen</span>
+e = b.warte(2)      <span class="c"># auf Taste warten</span>
+<span class="k">if</span> e <span class="k">and</span> e[0] == <span class="s">"mitte"</span>: ...
+b.ton(T_SUPER)
+b.ton(kurz(<span class="s">"A5"</span>, 0.1))
+rng.randint(1, 5)   <span class="c"># Zufall, bei allen gleich</span></pre>
+      <h3>Pins</h3>
+      <table style="font-size:9pt">
+        <tr><td>LED 1–10</td><td>GPIO 4, 17, 27, 22, 5, 6, 13, 19, 26, 21</td></tr>
+        <tr><td>Taster L / M / R</td><td>GPIO 18 / 23 / 24</td></tr>
+        <tr><td>Buzzer</td><td>GPIO 25</td></tr>
+      </table>
+      <h3>Terminal</h3>
+      <table style="font-size:9pt">
+        <tr><td><span class="taste">Strg</span>+<span class="taste">C</span></td><td>Programm stoppen</td></tr>
+        <tr><td><span class="taste">↑</span></td><td>letzter Befehl</td></tr>
+        <tr><td><span class="taste">Tab</span></td><td>Namen ergänzen</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
