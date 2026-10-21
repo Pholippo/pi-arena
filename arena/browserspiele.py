@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""WEBSPIELE - Server fuer die Browser-Spiele der MEGA-PARTY (NINJA-RACE, FLAPPY-PARTY, AUTO-PARTY).
+"""BROWSERSPIELE - Server fuer die Browser-Spiele von PiArena (NINJA-RACE, FLAPPY-PARTY, AUTO-PARTY).
 
 WAS MACHT DIE DATEI?
-  Liefert das gerade aktive Spiel (ninja.html / flappy.html / auto.html) aus und haelt die
+  Liefert das gerade aktive Spiel (web/ninja.html / web/flappy.html / web/auto.html) aus und haelt die
   gemeinsame Welt: wer spielt mit, wie weit ist jede/r, wer ist im Ziel. Alle spielen gleichzeitig,
   die anderen sieht man als Geister mit Namen. Kein Befehl, nix installieren - nur eine Webseite:
       http://<HOST>:8082            (Pi-Browser, Laptop oder Handy; ?name=Max traegt den Namen ein)
       http://<HOST>:8082/tv         (Zuschauer-Ansicht + START-Knopf fuer Monitor/Beamer)
 
 WIE STARTEN?
-  Normalerweise gar nicht: mega.py startet diese Datei selbst mit (ausser mit --ohne-web) und
+  Normalerweise gar nicht: arena/host.py startet diese Datei selbst mit (ausser mit --ohne-web) und
   steuert sie: POST /spiel (welches Spiel), /start (Countdown + Runde), /lobby (Abbruch/Ende).
-  Allein (ohne MEGA-PARTY):  python3 webspiele.py [--spiel ninja|flappy|auto]
-  Test ohne Netz:            python3 webspiele.py --selbsttest
+  Allein (ohne Host):        python3 arena/browserspiele.py [--spiel ninja|flappy|auto]
+  Test ohne Netz:            python3 arena/browserspiele.py --selbsttest
 
 NEUES BROWSER-SPIEL DAZUBAUEN:
-  1. xyz.html in diesen Ordner legen (Vorlage: flappy.html). Gleiche API: POST /join (name) -> id,
+  1. web/xyz.html anlegen (Vorlage: tools/web-vorlagen/, siehe MITMACHEN.md). Gleiche API: POST /join (name) -> id,
      POST /upd (id, x, y, lebt, ziel) -> Zustand, GET /state. "best" = Weite, "ziel" = Zielzeit in s.
-  2. "xyz" in SPIELE unten eintragen und in mega.py in WEB_SPIELE (Name + Kurztext) und SPIEL_FARBE.
+  2. "xyz" in SPIELE unten eintragen und in arena/ablauf.py in WEB_SPIELE (Name + Kurztext) und arena/monitor.py in SPIEL_FARBE.
 """
 import json
 import os
@@ -34,7 +34,7 @@ from urllib.parse import parse_qs, urlparse
 # ---------------------------------------------------------------- Einstellungen
 
 PORT = 8082
-RUNDE_S = 180          # Standard-Spielzeit (3 Minuten); MEGA-PARTY schickt bei /start ihre eigene Dauer
+RUNDE_S = 180          # Standard-Spielzeit (3 Minuten); der Host schickt bei /start ihre eigene Dauer
 COUNTDOWN_S = 5        # Countdown nach /start, bevor alle losspielen
 SPIELE = ("ninja", "flappy", "auto")  # erlaubte Spiele = Dateinamen ohne .html
 FARBEN = ["#ffd23f", "#ff5d8f", "#3bceac", "#4ea8de", "#f77f00", "#a06cd5", "#90be6d",
@@ -48,7 +48,7 @@ class Party:
         self.phase = "lobby"       # lobby | countdown | spiel | ende
         self.seit = time.time()
         self.seed = random.randint(1, 10 ** 6)
-        self.dauer = RUNDE_S       # pro Runde einstellbar (MEGA-PARTY startet z.B. 90 s)
+        self.dauer = RUNDE_S       # pro Runde einstellbar (der Host startet z.B. 90 s)
 
     # ---- Ablauf
     def _tick(self):
@@ -155,7 +155,7 @@ def starte_server(party, port=PORT):
             u = urlparse(self.path)
             if u.path in ("/", "/tv", "/index.html"):
                 try:
-                    with open(os.path.join(HIER, f"{AKTIV[0]}.html"), encoding="utf-8") as f:
+                    with open(os.path.join(HIER, "web", f"{AKTIV[0]}.html"), encoding="utf-8") as f:
                         self._send(f.read(), "text/html; charset=utf-8")
                 except OSError as e:
                     self._send(f"{AKTIV[0]}.html fehlt: {e}", "text/plain", 500)
@@ -253,13 +253,13 @@ def selbsttest():
         time.sleep(0.1)
     assert st["spieler"][0]["name"] == "Bot7", st["spieler"][:2]
     assert len(st["spieler"]) == 8
-    for spiel in SPIELE:  # so schaltet MEGA-PARTY um ...
+    for spiel in SPIELE:  # so schaltet der Host um ...
         post("/spiel", name=spiel)
         with urllib.request.urlopen(url + "/", timeout=3) as r:
             assert b"<canvas" in r.read(), spiel + ".html fehlt"
     post("/start", dauer=30)
     assert post("/upd", id=ids[0])["phase"] == "countdown"
-    post("/lobby")  # ... und so bricht sie ab (Moderator ueberspringt)
+    post("/lobby")  # ... und so bricht er ab (Moderator ueberspringt)
     assert post("/upd", id=ids[0])["phase"] == "lobby", "/lobby bricht nicht ab"
     srv.shutdown()
     srv.server_close()
@@ -275,10 +275,10 @@ def main():
         starte_server(p)
     except OSError as e:
         print(f"FEHLER: Port {PORT} ist belegt ({e}).\n"
-              f"  Laeuft webspiele.py schon (z.B. von mega.py oder in Thonny)? Dann ist alles gut,\n"
+              f"  Laeuft browserspiele.py schon (z.B. vom Host oder in Thonny)? Dann ist alles gut,\n"
               f"  sonst das andere Programm beenden und nochmal starten.")
         return 2
-    print(f"WEBSPIELE laufen (aktiv: {AKTIV[0]}):")
+    print(f"BROWSERSPIELE laufen (aktiv: {AKTIV[0]}):")
     for ip in eigene_ips() or ["127.0.0.1"]:
         print(f"  Spielen:  http://{ip}:{PORT}      Monitor: http://{ip}:{PORT}/tv")
     try:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Pruefung von party/qrgen.py.
+"""Pruefung von arena/qrgen.py.
 
 Immer (nur Standardbibliothek): Groesse, Finder-Muster, Timing-Linien, Determinismus.
 Zusaetzlich, wenn installiert: PNG rendern + mit OpenCV (cv2) bzw. pyzbar dekodieren
@@ -14,7 +14,7 @@ import sys
 import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(REPO, "party"))
+sys.path.insert(0, os.path.join(REPO, "arena"))
 
 import qrgen  # noqa: E402
 

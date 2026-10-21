@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Ende-zu-Ende-Test Browser-Runde: Host (mega.py, ohne Monitor) + Browser-Spielserver (webspiele.py)
-+ 3 echte Client-Prozesse (mega_client.py --sim --bot) + 4 simulierte Browser-Spieler.
+"""Ende-zu-Ende-Test Browser-Runde: Host (arena/host.py, ohne Monitor) + Browser-Spielserver (browserspiele.py)
++ 3 echte Client-Prozesse (arena/spieler.py --sim --bot) + 4 simulierte Browser-Spieler.
 
-Geprueft wird: die Browser-Namen werden den MEGA-Spielern richtig zugeordnet
+Geprueft wird: die Browser-Namen werden den Arena-Spielern richtig zugeordnet
 (" anna " exakt, "BEN" Gross/Klein, "Carlxyz" Praefix, "Fremder" ignoriert), die Punkte stimmen
 (Ben 3, Anna 2, Carl 1) und danach laeuft eine normale Taster-Runde weiter.
 
 Aufruf (vom Repo-Ordner):  python3 tests/webtest.py
-Braucht die Ports 8081 und 8082 frei (vorher ./stop.sh, falls die Party laeuft).
+Braucht die Ports 8081 und 8082 frei (vorher ./stop.sh, falls PiArena laeuft).
 """
 import json
 import os
@@ -22,13 +22,14 @@ import urllib.request
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 os.environ["SDL_AUDIODRIVER"] = "dummy"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PARTY = os.path.join(REPO, "party")
-sys.path.insert(0, PARTY)
+ARENA = os.path.join(REPO, "arena")
+sys.path.insert(0, ARENA)
 import pygame  # noqa: E402
-import mega  # noqa: E402
+import einstellungen  # noqa: E402
+from monitor import App  # noqa: E402
 
 WEB = "http://127.0.0.1:8082"
-LOGS = tempfile.mkdtemp(prefix="mega_webtest_")
+LOGS = tempfile.mkdtemp(prefix="arena_webtest_")
 
 
 def post(p, **d):
@@ -45,18 +46,15 @@ def web_lebt():
 
 
 def main():
-    if hasattr(mega, "WEB_DAUER_S"):  # kurze Browser-Runde (20 s) fuer den Test
-        mega.WEB_DAUER_S = 20
-    else:  # aeltere mega.py
-        mega.WEB_DAUER[0] = 20
-    app = mega.App(sim=True, spielt=False, schnell=True, max_runden=5, ziel=99, headless=True)
+    einstellungen.WEB_DAUER_S = 20  # kurze Browser-Runde (20 s) fuer den Test
+    app = App(sim=True, spielt=False, schnell=True, max_runden=5, ziel=99, headless=True)
     # Startet der Host den Browser-Spielserver selbst mit? Sonst starten wir ihn hier.
     eigener_web = None
     ende = time.time() + 3
     while not web_lebt() and time.time() < ende:
         time.sleep(0.2)
     if not web_lebt():
-        eigener_web = subprocess.Popen([sys.executable, "-X", "utf8", os.path.join(PARTY, "webspiele.py")],
+        eigener_web = subprocess.Popen([sys.executable, "-X", "utf8", os.path.join(ARENA, "browserspiele.py")],
                                        stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         ende = time.time() + 5
         while not web_lebt() and time.time() < ende:
@@ -69,7 +67,7 @@ def main():
     for n in ("Anna", "Ben", "Carl"):
         log = open(os.path.join(LOGS, n + ".log"), "w", encoding="utf-8")
         logs.append(log)
-        procs.append(subprocess.Popen([sys.executable, "-X", "utf8", "-u", os.path.join(PARTY, "mega_client.py"),
+        procs.append(subprocess.Popen([sys.executable, "-X", "utf8", "-u", os.path.join(ARENA, "spieler.py"),
                                        "--sim", "--bot", "--leise", "--name", n, "--host", "127.0.0.1"],
                                       stdout=log, stderr=subprocess.STDOUT))
     uhr = pygame.time.Clock()

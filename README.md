@@ -1,12 +1,16 @@
-# MEGA-PARTY – das Klassen-Battle für die Raspberry-Pi-Platine
+# PiArena – Multiplayer-Arena für die Raspberry-Pi-Platine
 
-Eine ganze Klasse spielt **jeder gegen jeden**, jede/r am eigenen Raspberry Pi mit derselben selbst
+Die ganze Klasse spielt **gegeneinander**, jede/r am eigenen Raspberry Pi mit derselben selbst
 gelöteten Platine (10 LEDs, 3 Taster, Buzzer). Ein Pi mit Monitor oder Beamer ist der **Host**: Er zeigt
 die Lobby, sagt die Runden an, zählt mit und kürt am Ende den Sieger. Die **10 LEDs auf deiner Platine sind
 dein Punktestand**: Wer zuerst alle 10 leuchten hat, gewinnt.
 
 Kein Login auf fremden Geräten, keine Cloud: Alles läuft im Schulnetz, jede/r tritt mit **einem Befehl**
-am eigenen Pi bei – oder per QR-Code mit dem Handy.
+am eigenen Pi bei – oder per QR-Code mit dem Handy. Der Code ist offen (MIT-Lizenz) und so aufgebaut,
+dass man **eigene Minispiele in einer einzigen Datei** dazubauen kann.
+
+> 📄 **Anleitung als PDF für den Unterricht:** [`docs/PiArena_Anleitung.pdf`](docs/PiArena_Anleitung.pdf) –
+> Schritt für Schritt zum Austeilen, auch ohne Vorwissen.
 
 ![Lobby am Monitor: Beitritts-Befehl, QR-Code, Rangliste und Live-Schaltbild der Host-Platine](docs/bilder/lobby.png)
 
@@ -40,9 +44,9 @@ am eigenen Pi bei – oder per QR-Code mit dem Handy.
 Auf dem **Host-Pi** (der mit dem Monitor), im Terminal:
 
 ```bash
-git clone https://github.com/Pholippo/raspi-klassen-party.git && cd raspi-klassen-party   # 1. holen
-./install.sh                                                                         # 2. einrichten
-./start.sh                                                                           # 3. starten
+git clone https://github.com/Pholippo/pi-arena.git && cd pi-arena   # 1. holen
+./install.sh                                                     # 2. einrichten
+./start.sh                                                       # 3. starten
 ```
 
 Danach zeigt der Monitor den Beitritts-Befehl. Jede Schülerin und jeder Schüler tippt ihn **am eigenen Pi** ein:
@@ -53,15 +57,24 @@ curl http://<IP-VOM-HOST>:8081/j | python3
 
 Kein Internet am Pi? Ordner per USB-Stick kopieren, das steht in der [Anleitung](ANLEITUNG.md#3-projekt-auf-den-host-pi-holen).
 
+## Eigenes Minispiel in 3 Schritten
+
+1. In [`arena/minispiele.py`](arena/minispiele.py) das Beispiel `spiel_morse` anschauen und kopieren (eine Funktion + eine Zeile in `SPIELE`).
+2. Testen, ohne andere Spieler: `python3 arena/host.py --fenster --nur morse` (Pfeil links = Demo-Bots, Leertaste = Start, `A` `S` `D` = Taster).
+3. Fertig? In [`arena/einstellungen.py`](arena/einstellungen.py) aus `DEAKTIVIERT` nehmen – ab jetzt kommt es in jeder Partie dran.
+
+Ausführlich: [MITMACHEN.md](MITMACHEN.md).
+
 ## Ordner
 
 | Ordner / Datei | Inhalt |
 |---|---|
-| `party/` | **Das Hauptspiel MEGA-PARTY.** `mega.py` = Host (Monitor, Lobby, Wertung, Port 8081), `mega_client.py` = Client für jeden Schüler-Pi (liefert der Host selbst aus), `webspiele.py` = Server für die Browser-Spiele (Port 8082), `ninja.html` / `flappy.html` / `auto.html` = die Browser-Spiele, `web_client.html` = Handy-Seite, `qrgen.py` = QR-Code-Generator ohne Zusatz-Pakete |
+| `arena/` | **Das Hauptprogramm.** `host.py` = Host (Monitor, Lobby, Wertung), `spieler.py` = Programm für jeden Schüler-Pi, `minispiele.py` = die Taster-Spiele, `einstellungen.py` = Runden/Punkte/deaktivierte Spiele. Alle Dateien erklärt in [arena/README.md](arena/README.md) |
+| `arena/web/` | Browser-Spiele (`ninja.html`, `flappy.html`, `auto.html`) und Handy-Seite (`handy.html`) |
 | `extras/` | Einzelspiele vom Projektanfang (LED-Arcade, TURBO-BLITZ, PAC-PI, Anmeldung). Siehe [extras/README.md](extras/README.md) |
 | `tests/` | Automatische Tests. Alle auf einmal: `python3 tests/run_all.py` |
-| `tools/web-vorlagen/` | Vorlagen, aus denen `build.py` die drei Browser-Spiele baut (gemeinsamer PARTY-UI-Block). Siehe [MITMACHEN.md](MITMACHEN.md#browser-spiele-ändern-vorlagen-in-toolsweb-vorlagen) |
-| `docs/bilder/` | Screenshots für diese Seite |
+| `tools/web-vorlagen/` | Vorlagen, aus denen `build.py` die drei Browser-Spiele baut. Siehe [MITMACHEN.md](MITMACHEN.md#browser-spiele-ändern-vorlagen-in-toolsweb-vorlagen) |
+| `docs/` | Screenshots und die PDF-Anleitung |
 | `install.sh`, `start.sh`, `stop.sh` | Einrichten, Host starten, alles beenden |
 
 ## Weiterlesen
@@ -78,6 +91,6 @@ anderer Schulen. Bitte den Lizenztext mitgeben.
 
 ## Credits
 
-Entstanden in der HTL-Werkstätte, Klasse 3AHEL, 2026.
+Entstanden in der HTL-Werkstätte, Klasse 3AHEL, 2026 (damals noch unter dem Namen „MEGA-PARTY“).
 Idee & Platine: Philipp Grabner. Code mit KI-Unterstützung (Claude).
 Danke an die Klasse fürs Testen und Feedback geben.

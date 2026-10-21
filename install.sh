@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# MEGA-PARTY - Einrichtung am Raspberry Pi (als normaler Benutzer ausfuehren, NICHT mit sudo).
+# PiArena - Einrichtung am Raspberry Pi (als normaler Benutzer ausfuehren, NICHT mit sudo).
 #
 #   ./install.sh                 prueft python3, pygame, gpiozero, Chromium; installiert Fehlendes per apt
 #   ./install.sh --autostart     zusaetzlich: Host startet nach jedem Neustart/Login von selbst
 #   ./install.sh --kein-autostart  Autostart wieder ausschalten
 #
 # Mehrfach ausfuehren schadet nicht. Geaendert wird nur im eigenen Home
-# (~/.config/systemd/user/mega-party.service) - ausser den apt-Paketen.
+# (~/.config/systemd/user/pi-arena.service) - ausser den apt-Paketen.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
-UNIT="$UNIT_DIR/mega-party.service"
+UNIT="$UNIT_DIR/pi-arena.service"
 AUTOSTART=""
 
 for arg in "$@"; do
@@ -31,7 +31,7 @@ fi
 ok()   { echo "  [OK]   $*"; }
 fehlt() { echo "  [FEHLT] $*"; }
 
-echo "== MEGA-PARTY Einrichtung in $REPO"
+echo "== PiArena Einrichtung in $REPO"
 
 # ---- 1) Pruefen
 PAKETE=()
@@ -97,10 +97,10 @@ if [ "$AUTOSTART" = "an" ]; then
     exit 1
   fi
   mkdir -p "$UNIT_DIR"
-  tmp="$(mktemp "$UNIT_DIR/.mega-party.XXXXXX")"
+  tmp="$(mktemp "$UNIT_DIR/.pi-arena.XXXXXX")"
   cat > "$tmp" <<EOF
 [Unit]
-Description=MEGA-PARTY Host (Klassen-Battle mit der Pi-Platine)
+Description=PiArena Host (Multiplayer-Arena fuer die Pi-Platine)
 After=default.target
 
 [Service]
@@ -109,7 +109,7 @@ WorkingDirectory=$REPO
 Environment=PYTHONUNBUFFERED=1
 # warten, bis der Desktop (Wayland) da ist - sonst laeuft der Host ohne Bild
 ExecStartPre=/bin/sh -c 'for i in \$(seq 90); do [ -S "\$XDG_RUNTIME_DIR/wayland-0" ] && exit 0; sleep 1; done; exit 0'
-ExecStart=/usr/bin/env python3 $REPO/party/mega.py
+ExecStart=/usr/bin/env python3 $REPO/arena/host.py
 Restart=on-failure
 RestartSec=5
 
@@ -118,15 +118,15 @@ WantedBy=default.target
 EOF
   mv -f "$tmp" "$UNIT"
   systemctl --user daemon-reload
-  systemctl --user enable mega-party.service >/dev/null
+  systemctl --user enable pi-arena.service >/dev/null
   echo
   echo "Autostart AN: $UNIT"
   echo "  Der Host startet ab jetzt nach jedem Neustart, sobald der Desktop da ist."
-  echo "  Jetzt gleich starten:  systemctl --user start mega-party   (oder ./start.sh)"
+  echo "  Jetzt gleich starten:  systemctl --user start pi-arena   (oder ./start.sh)"
   echo "  Ausschalten:           ./install.sh --kein-autostart"
 elif [ "$AUTOSTART" = "aus" ]; then
   if [ -f "$UNIT" ]; then
-    systemctl --user disable --now mega-party.service >/dev/null 2>&1 || true
+    systemctl --user disable --now pi-arena.service >/dev/null 2>&1 || true
     rm -f "$UNIT"
     systemctl --user daemon-reload || true
     echo "Autostart AUS (Datei entfernt: $UNIT)"

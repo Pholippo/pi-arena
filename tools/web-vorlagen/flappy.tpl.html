@@ -35,7 +35,7 @@ function roehre(i){ // Mitte der Luecke von Roehre i
 @@UI@@
 // ---------- Zustand
 const TV=location.pathname.startsWith('/tv');
-const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // aus MEGA-PARTY: kein Tippen
+const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // vom PiArena-Host: kein Tippen
 let autoLaeuft=false;
 const cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false});
 let W=800, skala=1, bgC=null;

@@ -1,9 +1,9 @@
 // Extrahiert JS aus auto.html, node --check, und simuliert die Loesbarkeit des Verkehrs:
 // alle Schwierigkeitsstufen einzeln + gemischt (benachbarte Reihen aus verschiedenen Stufen),
 // Hoechsttempo (VMAX + VMAX_PLUS + TURBO) wird aus der Datei gelesen.
-// Aufruf (vom Repo-Ordner):  node tests/auto_test.cjs [party/auto.html] [Seeds, Standard 20]
+// Aufruf (vom Repo-Ordner):  node tests/auto_test.cjs [arena/web/auto.html] [Seeds, Standard 20]
 const fs = require('fs'), path = require('path'), cp = require('child_process'), os = require('os');
-const html = fs.readFileSync(process.argv[2] || path.join(__dirname, '..', 'party', 'auto.html'), 'utf8');
+const html = fs.readFileSync(process.argv[2] || path.join(__dirname, '..', 'arena', 'web', 'auto.html'), 'utf8');
 const SEEDS = +(process.argv[3] || 20);
 const js = html.match(/<script>([\s\S]*)<\/script>/)[1];
 const out = path.join(os.tmpdir(), 'auto_extracted.js');

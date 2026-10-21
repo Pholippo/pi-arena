@@ -2,12 +2,12 @@
 """Fuehrt alle Tests des Projekts aus und zeigt am Ende eine Zusammenfassung.
 
 Aufruf (egal aus welchem Ordner):   python3 tests/run_all.py
-Nur bestimmte Tests:                python3 tests/run_all.py webspiele qrgen vorlagen
+Nur bestimmte Tests:                python3 tests/run_all.py browserspiele qrgen vorlagen
 Laeuft am Laptop (Windows/Linux/macOS) und am Pi - ohne Platine, ohne Monitor.
 
 Braucht: Python 3.11+ mit pygame. Node.js (fuer die zwei Browser-Spiel-Tests) ist optional:
 fehlt es, werden diese Tests als UEBERSPRUNGEN gemeldet.
-Die Ports 8081/8082 muessen frei sein (die Party vorher mit ./stop.sh beenden).
+Die Ports 8081/8082 muessen frei sein (PiArena vorher mit ./stop.sh beenden).
 """
 import os
 import shutil
@@ -21,10 +21,10 @@ NODE = shutil.which("node")
 
 # (Kurzname, Befehl, Zeitlimit in s, braucht Node?)
 TESTS = [
-    ("webspiele", PY + ["party/webspiele.py", "--selbsttest"], 60, False),
-    ("mega", PY + ["party/mega.py", "--selbsttest", "--sim"], 600, False),
-    ("ninja", ["node", "tests/ninja_qa.mjs", "party/ninja.html", "30"], 600, True),
-    ("auto", ["node", "tests/auto_test.cjs", "party/auto.html"], 120, True),
+    ("browserspiele", PY + ["arena/browserspiele.py", "--selbsttest"], 60, False),
+    ("host", PY + ["arena/host.py", "--selbsttest", "--sim"], 600, False),
+    ("ninja", ["node", "tests/ninja_qa.mjs", "arena/web/ninja.html", "30"], 600, True),
+    ("auto", ["node", "tests/auto_test.cjs", "arena/web/auto.html"], 120, True),
     ("webtest", PY + ["tests/webtest.py"], 300, False),
     ("moderator", PY + ["tests/webtest_moderator.py"], 300, False),
     ("qrgen", PY + ["tests/verify_qrgen.py"], 60, False),

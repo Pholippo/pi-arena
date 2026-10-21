@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Ende-zu-Ende-Test Browser-Runden MIT Moderator: Host (mega.py ohne Monitor, Moderator spielt mit,
-startet webspiele.py selbst) + 3 echte Client-Prozesse + Ersatz-Browser (MEGA_BROWSER) fuer Host und Clients.
+"""Ende-zu-Ende-Test Browser-Runden MIT Moderator: Host (arena/host.py ohne Monitor, Moderator spielt mit,
+startet browserspiele.py selbst) + 3 echte Client-Prozesse + Ersatz-Browser (ARENA_BROWSER) fuer Host und Clients.
 
 Geprueft wird:
-  - Host startet webspiele.py selbst mit (ein Startbefehl)
-  - Browser-Runde: Host UND Clients oeffnen den Browser selbst mit ?name=<MEGA-Name>, nach der Runde zu
+  - Host startet browserspiele.py selbst mit (ein Startbefehl)
+  - Browser-Runde: Host UND Clients oeffnen den Browser selbst mit ?name=<Arena-Name>, nach der Runde zu
   - Wertung: Moderator 3, Ben 2, Anna 1, Carl 0, "Fremder" ignoriert; Namens-Zuordnung (exakt/Gross-Klein/Praefix)
   - RECHTS am Moderator-Taster ueberspringt eine LAUFENDE Browser-Runde und eine Browser-ANSAGE:
     8082 geht auf /lobby (und bleibt dort), Browser gehen zu, es geht mit der naechsten Runde weiter
@@ -25,14 +25,16 @@ import urllib.request
 
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 os.environ["SDL_AUDIODRIVER"] = "dummy"
-PARTY = os.environ.get("MEGA_PARTY_DIR") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "party")
-sys.path.insert(0, PARTY)
+ARENA = os.environ.get("ARENA_DIR") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "arena")
+sys.path.insert(0, ARENA)
 import pygame  # noqa: E402
-import mega  # noqa: E402
+import ablauf  # noqa: E402
+import einstellungen  # noqa: E402
+from monitor import App  # noqa: E402
 
 WEB = "http://127.0.0.1:8082"
-LOGS = tempfile.mkdtemp(prefix="mega_webtest_mod_")
-HOSTNAME = mega.sauberer_name(socket.gethostname())
+LOGS = tempfile.mkdtemp(prefix="arena_webtest_mod_")
+HOSTNAME = ablauf.sauberer_name(socket.gethostname())
 TEMPO = {HOSTNAME: 5, "Ben": 4, "Anna": 3, "Carl": 2}
 
 # Ersatz-Browser: tut, was die echte Spielseite mit ?name= macht (beitreten + laufend /upd), plus Herzschlag-Datei
@@ -87,29 +89,29 @@ def browser_offen(name):
 
 def main():
     fehler = []
-    # Namens-Zuordnung Browser -> MEGA-Spieler (reine Logik)
-    spieler = {i: mega.Spieler(i, n, "pi", i) for i, n in (("a", "Anna"), ("b", "Ben"), ("c", "Carl"))}
+    # Namens-Zuordnung Browser -> Arena-Spieler (reine Logik)
+    spieler = {i: ablauf.Spieler(i, n, "pi", i) for i, n in (("a", "Anna"), ("b", "Ben"), ("c", "Carl"))}
     liste = [{"name": "BEN", "best": 9}, {"name": " anna ", "best": 5}, {"name": "Carlxyz", "best": 3},
              {"name": "Fremder", "best": 99}, {"name": "", "best": 1}]
-    if [sid for sid, _ in mega.web_zuordnung(liste, spieler)] != ["b", "a", "c"]:
+    if [sid for sid, _ in ablauf.web_zuordnung(liste, spieler)] != ["b", "a", "c"]:
         fehler.append("web_zuordnung: exakt/Gross-Klein/Praefix/Fremder falsch")
 
     fake = os.path.join(LOGS, "ersatz_browser.py")
     with open(fake, "w", encoding="utf-8") as f:
         f.write(ERSATZ_BROWSER)
-    os.environ["MEGA_BROWSER"] = f'"{sys.executable.replace(os.sep, "/")}" "{fake.replace(os.sep, "/")}"'
+    os.environ["ARENA_BROWSER"] = f'"{sys.executable.replace(os.sep, "/")}" "{fake.replace(os.sep, "/")}"'
     os.environ["FAKE_LOGS"] = LOGS
     os.environ["FAKE_TEMPO"] = json.dumps(TEMPO)
 
-    mega.WEB_DAUER_S = 20
-    app = mega.App(sim=True, spielt=True, schnell=True, max_runden=6, ziel=99, headless=True)  # Name = Hostname
-    if not app.webspiele:
-        fehler.append("Host hat webspiele.py nicht selbst gestartet (Port 8082 schon belegt?)")
+    einstellungen.WEB_DAUER_S = 20
+    app = App(sim=True, spielt=True, schnell=True, max_runden=6, ziel=99, headless=True)  # Name = Hostname
+    if not app.browserspiele:
+        fehler.append("Host hat browserspiele.py nicht selbst gestartet (Port 8082 schon belegt?)")
     procs, logs = [], []
     for n in ("Anna", "Ben", "Carl"):
         log = open(os.path.join(LOGS, n + ".log"), "w", encoding="utf-8")
         logs.append(log)
-        procs.append(subprocess.Popen([sys.executable, "-X", "utf8", "-u", os.path.join(PARTY, "mega_client.py"),
+        procs.append(subprocess.Popen([sys.executable, "-X", "utf8", "-u", os.path.join(ARENA, "spieler.py"),
                                        "--sim", "--bot", "--leise", "--name", n, "--host", "127.0.0.1"],
                                       stdout=log, stderr=subprocess.STDOUT))
     uhr = pygame.time.Clock()
@@ -133,7 +135,7 @@ def main():
 
     fremd = {"stop": False}
 
-    def fremder():  # jemand mit einem Namen, den es in der MEGA-PARTY nicht gibt -> wird ignoriert
+    def fremder():  # jemand mit einem Namen, den es in der Arena nicht gibt -> wird ignoriert
         sid = post("/join", name="Fremder")["id"]
         while not fremd["stop"]:
             try:
@@ -208,10 +210,10 @@ def main():
         p.wait()
     for log in logs:
         log.close()
-    web_proc = app.webspiele
+    web_proc = app.browserspiele
     app.beenden()
     if web_proc and web_proc.poll() is None:
-        fehler.append("webspiele.py laeuft nach app.beenden() noch")
+        fehler.append("browserspiele.py laeuft nach app.beenden() noch")
     for n in ("Anna", "Ben", "Carl"):
         with open(os.path.join(LOGS, n + ".log"), encoding="utf-8", errors="replace") as f:
             log = f.read()
@@ -227,7 +229,7 @@ def main():
     if fehler:
         print("WEBTEST-MODERATOR FEHLER:", "; ".join(fehler), f"(Logs: {LOGS})")
         return 1
-    print(f"WEBTEST-MODERATOR OK: webspiele.py vom Host gestartet+beendet, Browser fuer Host '{HOSTNAME}' + 3 Clients "
+    print(f"WEBTEST-MODERATOR OK: browserspiele.py vom Host gestartet+beendet, Browser fuer Host '{HOSTNAME}' + 3 Clients "
           f"selbst auf/zu, Wertung {erwartet}, RECHTS in laufender Runde und in Ansage -> /lobby + weiter")
     return 0
 

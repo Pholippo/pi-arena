@@ -1,10 +1,10 @@
 # extras – die Einzelspiele vom Projektanfang
 
-Bevor es die MEGA-PARTY gab, sind diese Spiele für **eine** Platine entstanden. Sie laufen
+Bevor es PiArena gab, sind diese Spiele für **eine** Platine entstanden. Sie laufen
 unabhängig vom Hauptspiel. Gestartet wird immer aus diesem Ordner:
 
 ```bash
-cd ~/raspi-klassen-party/extras
+cd ~/pi-arena/extras
 ```
 
 | Datei | Was es ist | Starten |
@@ -15,14 +15,14 @@ cd ~/raspi-klassen-party/extras
 | `chiptune.py` | Baustein, kein Spiel: erzeugt 8-Bit-Musik für den Monitor-Lautsprecher (HDMI). Braucht `python3-numpy`. | wird von `pacpi.py` geladen |
 | `anmeldung.py` | **Klassen-Anmeldung:** sammelt Namen am Host-Pi in einer Live-Liste (Browser `http://<HOST>:8090/`). Jede/r meldet sich am eigenen Pi per Fenster oder Terminal an und setzt dabei selbst das Einverständnis-Häkchen. | Host: `python3 anmeldung.py --server`. Schüler-Pi: der Befehl, den der Server anzeigt (`curl -s http://<HOST>:8090/anmelden.py -o anmelden.py && python3 anmelden.py`). Die Host-IP trägt der Server selbst ein; sonst `python3 anmelden.py <HOST-IP>` oder `GAME_HOST=<HOST-IP>` |
 
-**Pins:** `ledarcade.py`, `turbo.py` und `pacpi.py` verwenden standardmäßig dieselbe Platine wie die
-MEGA-PARTY (LEDs GPIO 4, 17, 27, 22, 5, 6, 13, 19, 26, 21 · Taster links 18, Mitte 23, rechts 24 ·
+**Pins:** `ledarcade.py`, `turbo.py` und `pacpi.py` verwenden standardmäßig dieselbe Platine wie
+PiArena (LEDs GPIO 4, 17, 27, 22, 5, 6, 13, 19, 26, 21 · Taster links 18, Mitte 23, rechts 24 ·
 passiver Buzzer 25). Eine andere Platine? `python3 ledarcade.py finden` probiert die Pins der Reihe
 nach durch und speichert das Ergebnis in `pins.json`.
 
 > `python3 ledarcade.py autostart` richtet einen **systemweiten** Autostart ein (braucht `sudo`,
 > schreibt nach `/etc/systemd/system`). Ausschalten: `sudo systemctl disable --now ledarcade`.
-> Für die MEGA-PARTY ist stattdessen `./install.sh --autostart` gedacht.
+> Für PiArena ist stattdessen `./install.sh --autostart` gedacht.
 
 Die Anmeldeliste `anmeldungen.json` entsteht beim ersten Anmelden in diesem Ordner. Sie wird von Git
 ignoriert, also nie mit hochgeladen. Nach dem Unterricht löschen.

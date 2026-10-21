@@ -233,7 +233,7 @@ function touchKnoepfe(bei){ // grosse Touch-Knoepfe (#touch button[data-k]) -> b
     b.addEventListener('contextmenu',e=>e.preventDefault()); }); }
 // ---------- PARTY-UI-ENDE
 const TV=location.pathname.startsWith('/tv');
-const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // aus MEGA-PARTY: kein Tippen
+const QNAME=(new URLSearchParams(location.search).get('name')||'').trim().slice(0,14); // vom PiArena-Host: kein Tippen
 let autoLaeuft=false;
 const cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false}); let W=800, skala=1, bgC=null;
 function groesse(){ // nur bei echter Groessenaenderung neu aufbauen; Himmel+Mond einmal in ein Offscreen-Canvas

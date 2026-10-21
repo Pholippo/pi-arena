@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Baut die drei Browser-Spiele party/ninja.html, party/flappy.html, party/auto.html aus den Vorlagen.
+"""Baut die drei Browser-Spiele arena/web/ninja.html, arena/web/flappy.html, arena/web/auto.html aus den Vorlagen.
 
 Der PARTY-UI-Block (Namensschild "DU", Rangliste, Countdown, Optik) steht in allen drei Spielen
 identisch. Er wird NUR hier geaendert:
@@ -8,9 +8,9 @@ identisch. Er wird NUR hier geaendert:
     ninja_level.js               Level-Generator + Physik von NINJA-RACE (tests/ninja_qa.mjs prueft genau diesen Code)
 
 Aufrufe (aus dem Repo-Ordner):
-    python3 tools/web-vorlagen/build.py               schreibt party/*.html (atomar)
-    python3 tools/web-vorlagen/build.py --pruefen     schreibt nichts, meldet nur, ob party/*.html aktuell ist
-    python3 tools/web-vorlagen/build.py --ziel DIR    schreibt nach DIR statt nach party/
+    python3 tools/web-vorlagen/build.py               schreibt arena/web/*.html (atomar)
+    python3 tools/web-vorlagen/build.py --pruefen     schreibt nichts, meldet nur, ob arena/web/*.html aktuell ist
+    python3 tools/web-vorlagen/build.py --ziel DIR    schreibt nach DIR statt nach arena/web/
 """
 import os
 import re
@@ -18,7 +18,7 @@ import sys
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HIER))
-PARTY = os.path.join(REPO, "party")
+ZIEL = os.path.join(REPO, "arena", "web")
 SPIELE = ("ninja", "flappy", "auto")
 
 
@@ -42,7 +42,7 @@ def baue(spiel):
 def main():
     args = sys.argv[1:]
     pruefen = "--pruefen" in args
-    ziel_dir = args[args.index("--ziel") + 1] if "--ziel" in args[:-1] else PARTY
+    ziel_dir = args[args.index("--ziel") + 1] if "--ziel" in args[:-1] else ZIEL
     veraltet = 0
     for spiel in SPIELE:
         s = baue(spiel)

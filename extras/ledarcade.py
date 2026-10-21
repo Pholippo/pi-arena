@@ -30,7 +30,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 CONFIG = os.path.join(HIER, "pins.json")
-# Standard = die MEGA-PARTY-Platine (10 LEDs, Taster 18/23/24, passiver Buzzer 25).
+# Standard = die PiArena-Platine (10 LEDs, Taster 18/23/24, passiver Buzzer 25).
 # Andere Platine? "python3 ledarcade.py finden" legt pins.json mit den eigenen Pins an.
 STANDARD = {
     "leds": [4, 17, 27, 22, 5, 6, 13, 19, 26, 21],

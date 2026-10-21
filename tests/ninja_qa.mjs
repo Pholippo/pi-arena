@@ -1,11 +1,11 @@
 // QA fuer ninja.html: Level-Generator + Physik aus der echten Datei extrahieren, A*-Bot ueber Eingaben.
-// Aufruf (vom Repo-Ordner):  node tests/ninja_qa.mjs [party/ninja.html] [Anzahl Seeds, Standard 30]
+// Aufruf (vom Repo-Ordner):  node tests/ninja_qa.mjs [arena/web/ninja.html] [Anzahl Seeds, Standard 30]
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const HIER = path.dirname(fileURLToPath(import.meta.url));
-const HTML = process.argv[2] || path.join(HIER, '..', 'party', 'ninja.html');
+const HTML = process.argv[2] || path.join(HIER, '..', 'arena', 'web', 'ninja.html');
 const SEEDS = +(process.argv[3] || 30);
 const src = fs.readFileSync(HTML, 'utf8');
 const a = src.indexOf('// ================= Level'), b = src.indexOf('// ================= Zustand, Netz, Eingabe');

@@ -1,4 +1,4 @@
-# Anleitung für Lehrkräfte – MEGA-PARTY im Unterricht
+# Anleitung für Lehrkräfte – PiArena im Unterricht
 
 Diese Anleitung führt Schritt für Schritt von der leeren SD-Karte bis zur fertigen Partie mit der ganzen
 Klasse. Programmierkenntnisse braucht es keine. Befehle in grauen Kästen werden genau so im **Terminal**
@@ -119,22 +119,22 @@ zeigt das Feld **LIVE-GPIO** jeden Taster (HIGH/LOW) und jede LED in Echtzeit.
 
 ```bash
 cd ~
-git clone https://github.com/Pholippo/raspi-klassen-party.git
-cd raspi-klassen-party
+git clone https://github.com/Pholippo/pi-arena.git
+cd pi-arena
 ```
 
 Wenn ihr mit einem eigenen Fork arbeitet, statt `Pholippo` euren GitHub-Namen einsetzen.
-Später auf den neuesten Stand bringen: `cd ~/raspi-klassen-party && git pull`
+Später auf den neuesten Stand bringen: `cd ~/pi-arena && git pull`
 
 ### Variante B: mit USB-Stick (kein Internet am Pi)
 
 1. Am Laptop auf der GitHub-Seite **Code → Download ZIP** klicken, ZIP auf den USB-Stick kopieren.
 2. Stick am Pi anstecken, ZIP im Dateimanager in den **Home-Ordner** entpacken.
-3. Den Ordner in `raspi-klassen-party` umbenennen (GitHub hängt oft `-main` an).
+3. Den Ordner in `pi-arena` umbenennen (GitHub hängt oft `-main` an).
 4. Im Terminal:
 
 ```bash
-cd ~/raspi-klassen-party
+cd ~/pi-arena
 bash install.sh
 ```
 
@@ -146,7 +146,7 @@ bash install.sh
 ## 4. Einrichten mit install.sh
 
 ```bash
-cd ~/raspi-klassen-party
+cd ~/pi-arena
 ./install.sh
 ```
 
@@ -165,7 +165,7 @@ Pi fix am Beamer hängt):
 ## 5. Host starten
 
 ```bash
-cd ~/raspi-klassen-party
+cd ~/pi-arena
 ./start.sh
 ```
 
@@ -275,12 +275,12 @@ Bei NINJA-RACE, FLAPPY-PARTY und AUTO-PARTY spielen alle im Browser:
 - **Laptop / anderer PC:** Die am Monitor angezeigte Adresse `http://…:8082` öffnen und **genau den
   Namen** eingeben, der in der Rangliste steht. Nur dann werden die Punkte zugeordnet.
 - Der Host spielt mit seinem eigenen Namen ebenfalls mit.
-- Am Monitor sieht man die Live-Rangliste und hinter jedem Browser-Namen den zugeordneten MEGA-Namen.
+- Am Monitor sieht man die Live-Rangliste und hinter jedem Browser-Namen den zugeordneten Arena-Namen.
 - Eine Browser-Runde dauert standardmäßig 90 Sekunden. Mit RECHTS lässt sie sich überspringen.
 
 ## 11. Nach einem Neustart des Pi
 
-- **Host-Pi:** Terminal öffnen, `cd ~/raspi-klassen-party && ./start.sh`. Mit eingerichtetem Autostart
+- **Host-Pi:** Terminal öffnen, `cd ~/pi-arena && ./start.sh`. Mit eingerichtetem Autostart
   (Abschnitt 4) startet der Host von selbst, sobald der Desktop da ist.
 - **Schüler-Pi:** den Beitritts-Befehl noch einmal eintippen (Pfeil-nach-oben-Taste im Terminal holt
   ihn zurück). Mit **gleichem Namen** bleiben die Punkte erhalten.
@@ -293,8 +293,8 @@ Bei NINJA-RACE, FLAPPY-PARTY und AUTO-PARTY spielen alle im Browser:
 **„LED GPIO … nicht nutzbar" / „GPIO busy"**
 Ein anderes Programm benutzt die Pins, meist ein noch laufendes Programm in **Thonny**. In Thonny auf
 **Stop** klicken oder Thonny schließen, dann den Beitritts-Befehl neu starten. Auch ein zweites
-Spiel-Programm im Hintergrund blockiert die Pins. Abhilfe: `./stop.sh` am Host oder `pkill -f mega_client`
-am Schüler-Pi. Das Programm läuft mit den freien Pins weiter, die belegten werden übersprungen.
+Spiel-Programm im Hintergrund blockiert die Pins. Abhilfe: `./stop.sh` am Host oder `pkill -f spieler.py` bzw. im Terminal
+des Spielers `Strg+C`. Das Programm läuft mit den freien Pins weiter, die belegten werden übersprungen.
 
 **„Webserver aus (Port 8081 …)" oder „Address already in use"**
 Der Host läuft schon (z. B. per Autostart oder in einem zweiten Terminal). `./stop.sh` beendet alle

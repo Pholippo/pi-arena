@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>HTL Arena</title>
+<title>PiArena</title>
 <style>
   :root{
     --bg:#06080f;
@@ -441,7 +441,7 @@ function schedule(ms){
 var webFrame = null, webRunde = null;
 var WEB_RUNDEN = ["NINJA-RACE","FLAPPY-PARTY","AUTO-PARTY"];
 function webOverlay(j){
-  // Browser-Runde der MEGA-PARTY: Spiel von :8082 direkt hier drin, Name automatisch
+  // Browser-Runde von PiArena: Spiel von :8082 direkt hier drin, Name automatisch
   var aktiv = player && (j.phase === "countdown" || j.phase === "round") && WEB_RUNDEN.indexOf(j.round_name) >= 0;
   var key = aktiv ? (j.round + "/" + j.round_name) : null;
   if(key && key !== webRunde){
