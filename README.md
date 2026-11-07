@@ -39,6 +39,51 @@ dass man **eigene Minispiele in einer einzigen Datei** dazubauen kann.
 > Die Screenshots sind aus der Entwicklung (Oktober 2026). Die Spiele-Auswahl in der Lobby kann sich
 > inzwischen geändert haben.
 
+## Hardware
+
+Pro Teilnehmer/in (Host und jeder Schüler-Pi gleich):
+
+- Raspberry Pi 4 oder 5 mit Raspberry Pi OS **mit Desktop** (Bookworm oder Trixie), Python 3.11+
+- die Platine: **10 LEDs** (je 220–330 Ω Vorwiderstand), **3 Taster** gegen GND (interner Pull-up,
+  kein Widerstand nötig), **1 passiver Buzzer**
+- der Host zusätzlich: Monitor oder Beamer (HDMI)
+
+| Bauteil | GPIO (BCM) |
+|---|---|
+| LEDs 1–10 (links → rechts) | 4, 17, 27, 22, 5, 6, 13, 19, 26, 21 |
+| Taster LINKS / MITTE / RECHTS | 18 / 23 / 24 |
+| Buzzer (passiv) | 25 |
+
+Andere Pins: in [`arena/spieler.py`](arena/spieler.py) `LED_PINS`, `TASTER`, `BUZZER_PIN` ändern.
+Pin-Nummern am Stecker und ein Schaltbild stehen in der [Anleitung](ANLEITUNG.md#2-die-platine).
+Fehlt ein Bauteil oder ist ein Pin belegt, läuft das Programm trotzdem weiter (der Pin wird übersprungen).
+Ohne Platine (Laptop) geht alles mit `--sim`.
+
+<!-- Platzhalter: Hier fehlt noch ein Foto der gelöteten Platine (z. B. docs/bilder/platine.jpg). -->
+> 📷 *Foto der Platine: folgt.*
+
+## Steuerung
+
+**Schüler-Pi (Platine):** Die 3 Taster sind die Eingabe für die Minispiele, was sie gerade machen, steht
+in der Ansage am Monitor. Zwischen den Runden zeigen die LEDs den Punktestand. Blinken LED 1 und 10
+abwechselnd, sucht der Pi noch den Host. Ohne Platine (`python3 arena/spieler.py --sim`): `A` `S` `D` =
+links/mitte/rechts, `Q` = Ende.
+
+**Host (Moderation)**, mit den Tastern der Host-Platine oder der Tastatur:
+
+| Wann | LINKS (`←`) | MITTE (`Leertaste`/`Enter`) | RECHTS (`→`/`N`) |
+|---|---|---|---|
+| Lobby | Demo-Bots an/aus | Partie starten | – |
+| Ansage / Runde | – | – | Runde überspringen |
+| Ergebnis | – | sofort weiter | – |
+| Siegerehrung | – | neue Partie | – |
+
+`ESC` = zurück in die Lobby, in der Lobby beendet `ESC` das Programm. Spielt der Host mit, gehören seine
+Taster während einer Taster-Runde dem Spiel; im Fenster-Modus sind `A` `S` `D` seine eigenen Taster.
+
+**Handy:** Knöpfe bzw. Eingabefeld auf der Handy-Seite. Taster-Spiele, die echte LEDs brauchen
+(z. B. LAUFLICHT-STOPP), setzen Handy-Spieler aus.
+
 ## Schnellstart in 3 Schritten
 
 Auf dem **Host-Pi** (der mit dem Monitor), im Terminal:
@@ -72,7 +117,7 @@ Ausführlich: [MITMACHEN.md](MITMACHEN.md).
 | `arena/` | **Das Hauptprogramm.** `host.py` = Host (Monitor, Lobby, Wertung), `spieler.py` = Programm für jeden Schüler-Pi, `minispiele.py` = die Taster-Spiele, `einstellungen.py` = Runden/Punkte/deaktivierte Spiele. Alle Dateien erklärt in [arena/README.md](arena/README.md) |
 | `arena/web/` | Browser-Spiele (`ninja.html`, `flappy.html`, `auto.html`) und Handy-Seite (`handy.html`) |
 | `extras/` | Einzelspiele vom Projektanfang (LED-Arcade, TURBO-BLITZ, PAC-PI, Anmeldung). Siehe [extras/README.md](extras/README.md) |
-| `tests/` | Automatische Tests. Alle auf einmal: `python3 tests/run_all.py` |
+| `tests/` | Automatische Tests. Alle auf einmal: `python3 tests/run_all.py`. Nur die schnellen Logik-Tests (ohne pygame, ohne Platine): `python3 -m unittest discover -s tests -p "test_*.py"` |
 | `tools/web-vorlagen/` | Vorlagen, aus denen `build.py` die drei Browser-Spiele baut. Siehe [MITMACHEN.md](MITMACHEN.md#browser-spiele-ändern-vorlagen-in-toolsweb-vorlagen) |
 | `docs/` | Screenshots und die PDF-Anleitung |
 | `install.sh`, `start.sh`, `stop.sh` | Einrichten, Host starten, alles beenden |

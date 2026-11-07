@@ -36,6 +36,7 @@ from urllib.parse import parse_qs, urlparse
 PORT = 8082
 RUNDE_S = 180          # Standard-Spielzeit (3 Minuten); der Host schickt bei /start ihre eigene Dauer
 COUNTDOWN_S = 5        # Countdown nach /start, bevor alle losspielen
+VERGESSEN_S = 600      # wer sich so lange nicht gemeldet hat, wird beim naechsten /join aus der Liste geloescht
 SPIELE = ("ninja", "flappy", "auto")  # erlaubte Spiele = Dateinamen ohne .html
 FARBEN = ["#ffd23f", "#ff5d8f", "#3bceac", "#4ea8de", "#f77f00", "#a06cd5", "#90be6d",
           "#ef476f", "#06d6a0", "#ffb4a2", "#f9c74f", "#43aa8b"]
@@ -84,6 +85,9 @@ class Party:
             if sid in self.spieler:  # Reload -> gleicher Vogel
                 self.spieler[sid]["name"] = name
                 return sid
+            jetzt = time.time()  # alte Eintraege aufraeumen, sonst waechst die Liste mit jedem Reload/Join ewig
+            for alt in [k for k, v in self.spieler.items() if jetzt - v["gesehen"] > VERGESSEN_S]:
+                del self.spieler[alt]
             sid = secrets.token_hex(4)
             self.spieler[sid] = {"name": name, "farbe": FARBEN[len(self.spieler) % len(FARBEN)],
                                  "x": 0.0, "y": 0.0, "lebt": True, "best": 0.0, "tode": 0,
@@ -136,6 +140,8 @@ AKTIV = [SPIEL if SPIEL in SPIELE else "flappy"]  # was "/" gerade ausliefert - 
 def starte_server(party, port=PORT):
     """HTTP-Server im Hintergrund. Port belegt -> OSError (Aufrufer gibt eine klare Meldung aus)."""
     class H(BaseHTTPRequestHandler):
+        timeout = 10  # haengende Verbindungen nicht ewig festhalten (wie im Webserver auf 8081)
+
         def log_message(self, *a):
             pass
 
@@ -168,7 +174,7 @@ def starte_server(party, port=PORT):
         def do_POST(self):
             u = urlparse(self.path)
             try:
-                laenge = min(2048, int(self.headers.get("Content-Length") or 0))
+                laenge = max(0, min(2048, int(self.headers.get("Content-Length") or 0)))  # negativ = read(-1) -> verhindern
                 d = {k: v[0] for k, v in parse_qs(self.rfile.read(laenge).decode("utf-8", "replace")).items()}
             except ValueError:
                 return self._send("falsch", "text/plain", 400)

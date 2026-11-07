@@ -190,7 +190,8 @@ def starte_web(app):
             u = urlparse(self.path)
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             try:
-                laenge = min(4096, int(self.headers.get("Content-Length") or 0))  # nie riesige Bodies lesen
+                laenge = max(0, min(4096, int(self.headers.get("Content-Length") or 0)))  # nie riesige Bodies lesen
+                # (max(0, ...): ein negativer Wert wuerde sonst read(-1) = "alles bis Verbindungsende" bedeuten)
                 body = {k: v[0] for k, v in parse_qs(self.rfile.read(laenge).decode("utf-8", "replace")).items()}
                 if u.path == "/join":
                     self._json(show.api_join(body.get("name", ""), body.get("art", "web"), body.get("kennung", "")))

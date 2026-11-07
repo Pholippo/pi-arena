@@ -2,7 +2,7 @@
 """Fuehrt alle Tests des Projekts aus und zeigt am Ende eine Zusammenfassung.
 
 Aufruf (egal aus welchem Ordner):   python3 tests/run_all.py
-Nur bestimmte Tests:                python3 tests/run_all.py browserspiele qrgen vorlagen
+Nur bestimmte Tests:                python3 tests/run_all.py logik browserspiele qrgen vorlagen
 Laeuft am Laptop (Windows/Linux/macOS) und am Pi - ohne Platine, ohne Monitor.
 
 Braucht: Python 3.11+ mit pygame. Node.js (fuer die zwei Browser-Spiel-Tests) ist optional:
@@ -21,6 +21,7 @@ NODE = shutil.which("node")
 
 # (Kurzname, Befehl, Zeitlimit in s, braucht Node?)
 TESTS = [
+    ("logik", PY + ["-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], 120, False),
     ("browserspiele", PY + ["arena/browserspiele.py", "--selbsttest"], 60, False),
     ("host", PY + ["arena/host.py", "--selbsttest", "--sim"], 600, False),
     ("ninja", ["node", "tests/ninja_qa.mjs", "arena/web/ninja.html", "30"], 600, True),

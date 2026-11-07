@@ -14,10 +14,12 @@ Zwei Rollen in EINER Datei:
 
 Kein Login auf fremde Geraete: jede/r startet das Popup selbst.
 """
+import html
 import json
 import os
 import socket
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -51,6 +53,26 @@ def lade():
             return json.load(f)
     except (OSError, ValueError):
         return []
+
+
+LISTE_LOCK = threading.Lock()  # /reg kommt aus vielen Threads gleichzeitig -> lesen+schreiben nie parallel
+
+
+def liste_html(eintraege, befehl):
+    """Live-Liste als HTML. Namen kommen von den Schuelern -> immer escapen (sonst laeuft z.B. ein
+    eingegebenes <script> im Browser der Lehrkraft)."""
+    esc = html.escape
+    zeilen = "".join(
+        f"<li>{'✅' if e.get('start_ok') else '▫️'} <b>{esc(str(e.get('name', '')))}</b> "
+        f"<small>Pi {esc(str(e.get('pi') or '?'))} · {esc(str(e.get('ip', '')))}</small></li>"
+        for e in eintraege)
+    return f"""<!doctype html><meta charset=utf-8>
+<title>Anmeldung</title><style>body{{font-family:system-ui;background:#0b0f14;color:#e8eef5;
+text-align:center;padding:20px}}code{{background:#161b22;padding:8px 12px;border-radius:8px;display:inline-block}}
+li{{list-style:none;font-size:20px;margin:6px}}small{{opacity:.6}}</style>
+<h1>LED-Game Anmeldung</h1><p>Am eigenen Pi im Terminal eingeben:</p>
+<code>{esc(befehl)}</code><h2>{len(eintraege)} dabei</h2><ul>{zeilen}</ul>
+<script>setTimeout(()=>location.reload(),2000)</script>"""
 
 
 def speichere(eintraege):
@@ -96,27 +118,18 @@ def server():
                 ok = (q.get("ok", ["0"])[0]) in ("1", "true", "ja")
                 ip = self.client_address[0]
                 if name:
-                    eintraege = [e for e in lade() if e.get("ip") != ip]
-                    eintraege.append({"name": name, "pi": pi, "ip": ip,
-                                      "start_ok": ok, "zeit": time.strftime("%H:%M:%S")})
-                    speichere(eintraege)
+                    with LISTE_LOCK:  # zwei gleichzeitige Anmeldungen duerfen sich nicht gegenseitig loeschen
+                        eintraege = [e for e in lade() if e.get("ip") != ip]
+                        eintraege.append({"name": name, "pi": pi, "ip": ip,
+                                          "start_ok": ok, "zeit": time.strftime("%H:%M:%S")})
+                        speichere(eintraege)
                     haken = "OK Fernstart" if ok else "KEIN Fernstart"
                     print(f"  [+] {name}  (Pi {pi or '?'}, {ip}) [{haken}]  -> {len(eintraege)} angemeldet")
                 self._send("ok")
             elif pfad.path in ("/liste", "/l"):
                 self._send(json.dumps(lade(), ensure_ascii=False), "application/json")
             else:
-                zeilen = "".join(
-                    f"<li>{'✅' if e.get('start_ok') else '▫️'} <b>{e['name']}</b> "
-                    f"<small>Pi {e.get('pi') or '?'} · {e['ip']}</small></li>"
-                    for e in lade())
-                self._send(f"""<!doctype html><meta charset=utf-8>
-<title>Anmeldung</title><style>body{{font-family:system-ui;background:#0b0f14;color:#e8eef5;
-text-align:center;padding:20px}}code{{background:#161b22;padding:8px 12px;border-radius:8px;display:inline-block}}
-li{{list-style:none;font-size:20px;margin:6px}}small{{opacity:.6}}</style>
-<h1>LED-Game Anmeldung</h1><p>Am eigenen Pi im Terminal eingeben:</p>
-<code>{befehl}</code><h2>{len(lade())} dabei</h2><ul>{zeilen}</ul>
-<script>setTimeout(()=>location.reload(),2000)</script>""", "text/html; charset=utf-8")
+                self._send(liste_html(lade(), befehl), "text/html; charset=utf-8")
 
     try:
         srv = ThreadingHTTPServer(("0.0.0.0", PORT), H)

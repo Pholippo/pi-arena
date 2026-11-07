@@ -507,6 +507,9 @@ class Client:
 
     def _spiele(self, r):
         b, rid = self.b, r["rid"]
+        # Ein Abbruch-Signal, das der Poll-Thread noch fuer die VORIGE Runde gesetzt hat (zwischen
+        # abbruch.clear() und spiel = None im finally), darf diese neue Runde nicht sofort beenden.
+        b.abbruch.clear()
         try:
             start = time.monotonic() + r["start_in"]
             info = SPIELE[r["spiel"]]
